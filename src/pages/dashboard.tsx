@@ -3,8 +3,16 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
 
+interface Item {
+  _id: string;
+  title: string;
+  type: string;
+  description: string;
+  image?: string;
+}
+
 const DashboardPage: React.FC = () => {
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState<Item[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
