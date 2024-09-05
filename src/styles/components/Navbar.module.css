@@ -1,0 +1,30 @@
+/* components/Navbar.module.css */
+.navbar {
+    display: flex;
+    align-items: center;
+    height: 50px; /* Set a fixed height for the navbar */
+  }
+  
+  .navItem {
+    display: flex;
+    align-items: center;
+    height: 100%; /* Ensure items take the full height of the navbar */
+  }
+  
+  .navMenu {
+    display: flex;
+    align-items: center;
+  }
+  
+  .dropdownMenu {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .activeItem {
+    background-color: #f0f0f0; /* Example active background color */
+    height: 100%; /* Ensure the active item takes the full height */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
