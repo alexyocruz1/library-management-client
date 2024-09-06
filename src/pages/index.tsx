@@ -38,7 +38,6 @@ const IndexPage: React.FC = () => {
       const totalBooks = response.data.totalBooks || 0;
       setTotalPages(Math.ceil(totalBooks / booksPerPage) || 1);
     } catch (error) {
-      console.error('Error fetching books:', error);
       setError(t('errorFetchingBooks'));
       setBooks([]);
       setTotalPages(1);
