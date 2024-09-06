@@ -2,6 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
+import { useTranslation } from 'next-i18next';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { GetStaticProps } from 'next';
 
 interface Book {
   _id: string;
@@ -10,32 +13,37 @@ interface Book {
 }
 
 const IndexPage: React.FC = () => {
+  const { t } = useTranslation('common');
   const [books, setBooks] = useState<Book[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchBooks();
   }, [currentPage, searchTerm]);
 
   const fetchBooks = async () => {
+    setLoading(true);
+    setError(null);
     try {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books`, {
         params: { page: currentPage, search: searchTerm },
       });
-
-      console.log('response: ', response);
       setBooks(response.data.books);
 
-      // Calculate total pages based on the total number of books and books per page
       const booksPerPage = 10;
       const totalBooks = response.data.totalBooks || 0;
       setTotalPages(Math.ceil(totalBooks / booksPerPage) || 1);
     } catch (error) {
       console.error('Error fetching books:', error);
+      setError(t('errorFetchingBooks'));
       setBooks([]);
       setTotalPages(1);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -44,11 +52,11 @@ const IndexPage: React.FC = () => {
       <Navbar isLoggedIn={false} />
       <div className="ui container" style={{ marginTop: '20px' }}>
         <div className="ui fluid category search">
-          <div className="ui icon input">
+          <div className="ui icon input" style={{ width: '100%' }}>
             <input
               className="prompt"
               type="text"
-              placeholder="Search books..."
+              placeholder={t('searchBooks')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -56,7 +64,13 @@ const IndexPage: React.FC = () => {
           </div>
         </div>
         <div className="ui grid" style={{ marginTop: '20px' }}>
-          {books.length > 0 ? (
+          {loading ? (
+            <div className="ui active centered inline loader"></div>
+          ) : error ? (
+            <div className="ui negative message" style={{ textAlign: 'center', margin: '2rem auto 0rem' }}>
+              <div className="header">{error}</div>
+            </div>
+          ) : books.length > 0 ? (
             books.map((book) => (
               <div className="four wide column" key={book._id}>
                 <div className="ui card">
@@ -71,7 +85,7 @@ const IndexPage: React.FC = () => {
             ))
           ) : (
             <div className="ui message" style={{ textAlign: 'center', margin: '2rem auto 0rem' }}>
-              <div className="header">Oops, nothing on our shelves at the moment</div>
+              <div className="header">{t('nothingOnShelves')}</div>
             </div>
           )}
         </div>
@@ -82,13 +96,23 @@ const IndexPage: React.FC = () => {
               key={index}
               onClick={() => setCurrentPage(index + 1)}
             >
-              {index + 1}
+              {t('page')} {index + 1}
             </a>
           ))}
         </div>
       </div>
     </div>
   );
+};
+
+export const getStaticProps: GetStaticProps = async (context) => {
+  const { locale } = context;
+
+  return {
+    props: {
+      ...(await serverSideTranslations(locale as string, ['common'])),
+    },
+  };
 };
 
 export default IndexPage;

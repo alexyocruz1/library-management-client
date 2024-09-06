@@ -1,0 +1,11 @@
+{
+    "searchBooks": "Buscar libros...",
+    "nothingOnShelves": "Vaya, no hay nada en nuestras estanterías en este momento...",
+    "page": "Página",
+    "homeNavbar": "Inicio",
+    "languageNavbar": "Idioma",
+    "borrowBookNavbar": "Prestar Libro",
+    "createBookNavbar": "Registrar Libro",
+    "LogoutNavbar": "Cerrar Sesión",
+    "signupNavbar": "Crear Cuenta"
+  }

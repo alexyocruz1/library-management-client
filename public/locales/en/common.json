@@ -1,0 +1,11 @@
+{
+    "searchBooks": "Search books...",
+    "nothingOnShelves": "Oops, nothing on our shelves at the moment...",
+    "page": "Page",
+    "homeNavbar": "Home",
+    "languageNavbar": "Language",
+    "borrowBookNavbar": "Borrow Book",
+    "createBookNavbar": "Create Book",
+    "logoutNavbar": "Logout",
+    "signupNavbar": "Sign Up"
+  }
