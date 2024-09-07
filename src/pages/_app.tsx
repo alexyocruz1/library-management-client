@@ -10,7 +10,6 @@ function MyApp({ Component, pageProps }: AppProps) {
     <>
       <Head>
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#317EFB" />
         <meta name="description" content="This is a PWA version of my app" />
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
       </Head>
