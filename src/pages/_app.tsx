@@ -4,8 +4,30 @@ import '../styles/globals.css';
 import type { AppProps } from 'next/app';
 import { appWithTranslation } from 'next-i18next';
 import Head from 'next/head';
+import { useEffect } from 'react';
+import 'react-toastify/dist/ReactToastify.css';
+
+declare global {
+  interface Window {
+    jQuery: any;
+    $: any;
+  }
+}
 
 function MyApp({ Component, pageProps }: AppProps) {
+  useEffect(() => {
+    const loadDependencies = async () => {
+      if (typeof window !== 'undefined') {
+        // Load jQuery and make it globally available
+        const jQuery = await import('jquery');
+        window.jQuery = window.$ = jQuery.default;
+        // Then load Fomantic UI
+        await import('fomantic-ui-css/semantic.min.js');
+      }
+    };
+    loadDependencies();
+  }, []);
+
   return (
     <>
       <Head>

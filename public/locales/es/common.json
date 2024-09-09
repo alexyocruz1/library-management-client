@@ -7,5 +7,17 @@
     "borrowBookNavbar": "Prestar Libro",
     "createBookNavbar": "Registrar Libro",
     "LogoutNavbar": "Cerrar Sesión",
-    "signupNavbar": "Crear Cuenta"
-  }
+    "signupNavbar": "Crear Cuenta",
+    "signUp": "Registrarse",
+    "username": "Nombre de usuario",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "confirmPassword": "Confirmar contraseña",
+    "passwordsMismatch": "Las contraseñas no coinciden",
+    "signupSuccess": "¡Registro exitoso! Por favor, revisa tu correo electrónico para verificar tu cuenta.",
+    "signupError": "Ocurrió un error durante el registro. Por favor, inténtalo de nuevo.",
+    "login": "Iniciar sesión",
+    "loginSuccess": "¡Inicio de sesión exitoso!",
+    "loginError": "Ocurrió un error durante el inicio de sesión. Por favor, inténtalo de nuevo.",
+    "loginNavbar": "Iniciar sesión"
+}

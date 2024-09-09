@@ -7,7 +7,7 @@ import styles from '../styles/components/Navbar.module.css'; // Import the CSS m
 import { Dropdown } from 'semantic-ui-react'; // Import Fomantic UI Dropdown
 import { useTranslation } from 'next-i18next';
 
-const Navbar: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn = true }) => {
+const Navbar: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn = false }) => {
   const { t } = useTranslation('common');
   const [isClient, setIsClient] = useState(false);
   const router = useRouter();
@@ -25,6 +25,14 @@ const Navbar: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn = true }) => {
   const changeLanguage = (e: React.SyntheticEvent<HTMLElement>, { value }: any) => {
     const locale = value;
     router.push(router.pathname, router.asPath, { locale });
+  };
+
+  const handleSignUp = () => {
+    router.push('/signup');
+  };
+
+  const handleLogin = () => {
+    router.push('/login');
   };
 
   return (
@@ -62,9 +70,14 @@ const Navbar: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn = true }) => {
                   <div className="ui primary button">{t('logoutNavbar')}</div>
                 </Dropdown.Item>
               ) : (
-                <Dropdown.Item className={styles.navItem}>
-                  <div className="ui primary button">{t('signupNavbar')}</div>
-                </Dropdown.Item>
+                <>
+                  <div className={`item ${styles.navItem}`}>
+                    <div className="ui primary button" onClick={handleSignUp}>{t('signupNavbar')}</div>
+                  </div>
+                  <div className={`item ${styles.navItem}`}>
+                    <div className="ui secondary button" onClick={handleLogin}>{t('loginNavbar')}</div>
+                  </div>
+                </>
               )}
             </Dropdown.Menu>
           </Dropdown>
@@ -85,9 +98,14 @@ const Navbar: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn = true }) => {
                 <div className="ui primary button">{t('logoutNavbar')}</div>
               </div>
             ) : (
-              <div className={`item ${styles.navItem}`}>
-                <div className="ui primary button">{t('signupNavbar')}</div>
-              </div>
+              <>
+                <div className={`item ${styles.navItem}`}>
+                  <div className="ui primary button" onClick={handleSignUp}>{t('signupNavbar')}</div>
+                </div>
+                <div className={`item ${styles.navItem}`}>
+                  <div className="ui secondary button" onClick={handleLogin}>{t('loginNavbar')}</div>
+                </div>
+              </>
             )}
           </>
         )}

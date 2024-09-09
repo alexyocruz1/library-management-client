@@ -1,0 +1,1 @@
+declare module 'fomantic-ui-css/semantic.min.js';

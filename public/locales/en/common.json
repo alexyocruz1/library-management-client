@@ -7,5 +7,17 @@
     "borrowBookNavbar": "Borrow Book",
     "createBookNavbar": "Create Book",
     "logoutNavbar": "Logout",
-    "signupNavbar": "Sign Up"
-  }
+    "signupNavbar": "Sign Up",
+    "signUp": "Sign Up",
+    "username": "Username",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "passwordsMismatch": "Passwords do not match",
+    "signupSuccess": "Signup successful! Please check your email to verify your account.",
+    "signupError": "An error occurred during signup. Please try again.",
+    "login": "Login",
+    "loginSuccess": "Login successful!",
+    "loginError": "An error occurred during login. Please try again.",
+    "loginNavbar": "Login"
+}
