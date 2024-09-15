@@ -63,7 +63,7 @@ const SignUpPage: React.FC = () => {
         <title>{t('signUp')}</title>
       </Head>
       <Navbar isLoggedIn={false} />
-      <div className="ui container" style={{ marginTop: '20px' }}>
+      <div className="ui container" style={{ margin: '2rem auto', padding: '2rem', maxWidth: '600px' }}>
         <h1>{t('signUp')}</h1>
         <form className="ui form" onSubmit={handleSubmit}>
           <div className="field">

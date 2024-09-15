@@ -1,8 +1,12 @@
 // pages/admin/borrow-return.tsx
 import React, { useState } from 'react';
 import Navbar from '../../components/Navbar';
+import { useTranslation } from 'next-i18next';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { GetStaticProps } from 'next';
 
 const BorrowReturnPage: React.FC = () => {
+  const { t } = useTranslation('common');
   const [action, setAction] = useState<'borrow' | 'return'>('borrow');
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -24,11 +28,20 @@ const BorrowReturnPage: React.FC = () => {
   return (
     <div>
       <Navbar isLoggedIn={true} />
-      <div className="ui container">
-        <h2>{action === 'borrow' ? 'Borrow a Book' : 'Return a Book'}</h2>
+      <div className="ui container" style={{ margin: '2rem auto', padding: '2rem', maxWidth: '800px' }}>
+        <h2>{t('borrowReturn')}</h2>
+        <div className="ui two buttons">
+          <button className={`ui button ${action === 'borrow' ? 'active' : ''}`} onClick={() => setAction('borrow')}>
+            {t('borrow')}
+          </button>
+          <button className={`ui button ${action === 'return' ? 'active' : ''}`} onClick={() => setAction('return')}>
+            {t('return')}
+          </button>
+        </div>
+        <h3>{action === 'borrow' ? t('borrowBook') : t('returnBook')}</h3>
         <form className="ui form" onSubmit={handleSubmit}>
           <div className="field">
-            <label>Date</label>
+            <label>{t('date')}</label>
             <input
               type="date"
               name="date"
@@ -38,7 +51,7 @@ const BorrowReturnPage: React.FC = () => {
             />
           </div>
           <div className="field">
-            <label>Name</label>
+            <label>{t('name')}</label>
             <input
               type="text"
               name="name"
@@ -48,7 +61,7 @@ const BorrowReturnPage: React.FC = () => {
             />
           </div>
           <div className="field">
-            <label>Last Name</label>
+            <label>{t('lastName')}</label>
             <input
               type="text"
               name="lastName"
@@ -58,7 +71,7 @@ const BorrowReturnPage: React.FC = () => {
             />
           </div>
           <div className="field">
-            <label>Grade</label>
+            <label>{t('grade')}</label>
             <input
               type="text"
               name="grade"
@@ -68,7 +81,7 @@ const BorrowReturnPage: React.FC = () => {
             />
           </div>
           <div className="field">
-            <label>Observations</label>
+            <label>{t('observations')}</label>
             <textarea
               name="observations"
               value={formData.observations}
@@ -77,12 +90,20 @@ const BorrowReturnPage: React.FC = () => {
             ></textarea>
           </div>
           <button className="ui button" type="submit">
-            Submit
+            {t('submit')}
           </button>
         </form>
       </div>
     </div>
   );
+};
+
+export const getStaticProps: GetStaticProps = async ({ locale }) => {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale as string, ['common'])),
+    },
+  };
 };
 
 export default BorrowReturnPage;

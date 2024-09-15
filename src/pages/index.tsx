@@ -5,12 +5,31 @@ import Navbar from '../components/Navbar';
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { GetStaticProps } from 'next';
+import Image from 'next/image';
 
 interface Book {
   _id: string;
   title: string;
-  image?: string;
+  author: string;
+  editorial: string;
+  edition: string;
+  status: string;
+  imageUrl?: string;
 }
+
+const BookImage: React.FC<{ src: string, alt: string }> = ({ src, alt }) => {
+  const [imgSrc, setImgSrc] = useState(src);
+
+  return (
+    <Image
+      src={imgSrc}
+      alt={alt}
+      width={200}
+      height={300}
+      onError={() => setImgSrc('/placeholder.png')}
+    />
+  );
+};
 
 const IndexPage: React.FC = () => {
   const { t } = useTranslation('common');
@@ -20,10 +39,17 @@ const IndexPage: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     fetchBooks();
+    checkAuthStatus();
   }, [currentPage, searchTerm]);
+
+  const checkAuthStatus = () => {
+    const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
+  };
 
   const fetchBooks = async () => {
     setLoading(true);
@@ -48,7 +74,7 @@ const IndexPage: React.FC = () => {
 
   return (
     <div>
-      <Navbar isLoggedIn={false} />
+      <Navbar isLoggedIn={isLoggedIn} />
       <div className="ui container" style={{ marginTop: '20px' }}>
         <div className="ui fluid category search">
           <div className="ui icon input" style={{ width: '100%' }}>
@@ -66,26 +92,33 @@ const IndexPage: React.FC = () => {
           {loading ? (
             <div className="ui active centered inline loader"></div>
           ) : error ? (
-            <div className="ui negative message" style={{ textAlign: 'center', margin: '2rem auto 0rem' }}>
-              <div className="header">{error}</div>
-            </div>
+            <div className="ui negative message">{error}</div>
           ) : books.length > 0 ? (
             books.map((book) => (
               <div className="four wide column" key={book._id}>
                 <div className="ui card">
                   <div className="image">
-                    <img src={book.image || '/placeholder.png'} alt={book.title} />
+                    <BookImage src={book.imageUrl || '/placeholder.png'} alt={book.title} />
                   </div>
                   <div className="content">
                     <div className="header">{book.title}</div>
+                    <div className="meta">
+                      <span>{book.author}</span>
+                    </div>
+                    <div className="description">
+                      <p>{book.editorial} - {t('edition')} {book.edition}</p>
+                    </div>
+                  </div>
+                  <div className="extra content">
+                    <span className={`ui ${book.status === 'available' ? 'green' : 'red'} label`}>
+                      {(t(book.status)).toUpperCase()}
+                    </span>
                   </div>
                 </div>
               </div>
             ))
           ) : (
-            <div className="ui message" style={{ textAlign: 'center', margin: '2rem auto 0rem' }}>
-              <div className="header">{t('nothingOnShelves')}</div>
-            </div>
+            <div className="ui message">{t('nothingOnShelves')}</div>
           )}
         </div>
         <div className="ui pagination menu" style={{ marginTop: '3rem' }}>

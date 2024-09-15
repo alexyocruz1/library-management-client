@@ -35,6 +35,11 @@ const Navbar: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn = false }) => {
     router.push('/login');
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    router.push('/login');
+  };
+
   return (
     <div className={`ui mini menu ${styles.navbar}`}>
       <Link href="/" passHref>
@@ -67,7 +72,7 @@ const Navbar: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn = false }) => {
               )}
               {isLoggedIn ? (
                 <Dropdown.Item className={styles.navItem}>
-                  <div className="ui primary button">{t('logoutNavbar')}</div>
+                  <div className="ui primary button" onClick={handleLogout}>{t('logoutNavbar')}</div>
                 </Dropdown.Item>
               ) : (
                 <>
@@ -95,7 +100,7 @@ const Navbar: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn = false }) => {
             )}
             {isLoggedIn ? (
               <div className={`item ${styles.navItem}`}>
-                <div className="ui primary button">{t('logoutNavbar')}</div>
+                <div className="ui primary button" onClick={handleLogout}>{t('logoutNavbar')}</div>
               </div>
             ) : (
               <>

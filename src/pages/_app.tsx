@@ -6,6 +6,8 @@ import { appWithTranslation } from 'next-i18next';
 import Head from 'next/head';
 import { useEffect } from 'react';
 import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from 'react-toastify';
+import React from 'react';
 
 declare global {
   interface Window {
@@ -37,6 +39,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
       </Head>
       <Component {...pageProps} />
+      <ToastContainer />
     </>
   );
 }

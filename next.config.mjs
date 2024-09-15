@@ -9,7 +9,19 @@ const pwaConfig = withPWA({
 
 const nextConfig = {
   i18n,
-  ...pwaConfig
+  ...pwaConfig,
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+      {
+        protocol: 'http',
+        hostname: '**',
+      },
+    ],
+  },
 };
 
 export default nextConfig;
