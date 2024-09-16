@@ -83,6 +83,7 @@ const CreatePage: React.FC = () => {
   const [isMounted, setIsMounted] = useState(false);
   const [isValidImageUrl, setIsValidImageUrl] = useState<boolean | null>(null);
   const [isSearchMode, setIsSearchMode] = useState(false);
+  const [isEditableField, setIsEditableField] = useState<{[key: string]: boolean}>({});
 
   const selectId = 'category-select';
 
@@ -209,10 +210,25 @@ const CreatePage: React.FC = () => {
       });
       setSelectedCategories(book.categories || []);
       setIsSearchMode(true);
+      setIsEditableField({
+        invoiceCode: true,
+        coverType: true,
+        location: true,
+        cost: true,
+        dateAcquired: true,
+        condition: true,
+        categories: true,
+        imageUrl: true,
+        title: false,
+        author: false,
+        editorial: false,
+        edition: false,
+      });
     }
   };
 
-  const handleCopyBook = async () => {
+  const handleCopyBook = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!selectedBook) {
       toast.error(t('noBookSelected'));
       return;
@@ -221,7 +237,13 @@ const CreatePage: React.FC = () => {
     try {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books/${selectedBook._id}/copy`, {
         invoiceCode: formData.invoiceCode,
-        // ... other fields you want to customize for the copy
+        coverType: formData.coverType,
+        location: formData.location,
+        cost: formData.cost,
+        dateAcquired: formData.dateAcquired,
+        condition: formData.condition,
+        categories: selectedCategories,
+        imageUrl: formData.imageUrl,
       });
       if (response.status === 201) {
         toast.success(t('bookCopiedSuccess'));
@@ -279,6 +301,119 @@ const CreatePage: React.FC = () => {
     backgroundColor: '#fff6f6',
   };
 
+  const renderCopyForm = () => {
+    if (!selectedBook) return null;
+
+    return (
+      <form className="ui form" onSubmit={handleCopyBook} style={{ marginTop: '2rem' }}>
+        <div className="field">
+          <label>{t('invoiceCode')}</label>
+          <input
+            type="text"
+            name="invoiceCode"
+            value={formData.invoiceCode}
+            onChange={handleChange}
+            placeholder={t('enterInvoiceCode')}
+            style={isFieldEmpty('invoiceCode') ? errorStyle : {}}
+          />
+        </div>
+        <div className="field">
+          <label>{t('coverType')}</label>
+          <input
+            type="text"
+            name="coverType"
+            value={formData.coverType}
+            onChange={handleChange}
+            placeholder={t('enterCoverType')}
+            style={isFieldEmpty('coverType') ? errorStyle : {}}
+          />
+        </div>
+        <div className="field">
+          <label>{t('location')}</label>
+          <input
+            type="text"
+            name="location"
+            value={formData.location}
+            onChange={handleChange}
+            placeholder={t('enterLocation')}
+            style={isFieldEmpty('location') ? errorStyle : {}}
+          />
+        </div>
+        <div className="field">
+          <label>{t('cost')}</label>
+          <input
+            type="text"
+            name="cost"
+            value={formData.cost}
+            onChange={handleChange}
+            placeholder={t('enterCost')}
+            style={isFieldEmpty('cost') ? errorStyle : {}}
+          />
+        </div>
+        <div className="field">
+          <label>{t('dateAcquired')}</label>
+          <input
+            type="date"
+            name="dateAcquired"
+            value={formData.dateAcquired}
+            onChange={handleChange}
+            style={isFieldEmpty('dateAcquired') ? errorStyle : {}}
+          />
+        </div>
+        <div className="field">
+          <label>{t('condition')}</label>
+          <select
+            name="condition"
+            value={formData.condition}
+            onChange={handleChange}
+            style={isFieldEmpty('condition') ? errorStyle : {}}
+          >
+            <option value="good">{t('good')}</option>
+            <option value="regular">{t('regular')}</option>
+            <option value="bad">{t('bad')}</option>
+          </select>
+        </div>
+        <div className="field">
+          <label>{t('categories')}</label>
+          {isMounted && (
+            <CreatableSelect
+              instanceId={selectId}
+              isMulti
+              options={categories.map(cat => ({ value: cat, label: cat }))}
+              onChange={handleCategoryChange}
+              value={selectedCategories.map(cat => ({ value: cat, label: cat }))}
+              placeholder={t('selectOrTypeCategories')}
+              formatCreateLabel={(inputValue) => `Create "${inputValue}"`}
+            />
+          )}
+        </div>
+        <div className="field">
+          <label>{t('imageUrl')}</label>
+          <input
+            type="text"
+            name="imageUrl"
+            value={formData.imageUrl}
+            onChange={handleImageUrlChange}
+            placeholder={t('optionalImageUrl')}
+          />
+          {isValidImageUrl === false && (
+            <div style={{ color: 'red', marginTop: '5px' }}>
+              {t('invalidImageUrl')}
+            </div>
+          )}
+          {previewImage && (
+            <div style={{ marginTop: '10px' }}>
+              <Image src={previewImage} alt="Preview" width={200} height={200} objectFit="contain" />
+            </div>
+          )}
+        </div>
+        <button className="ui primary button" type="submit" style={{ marginTop: '1rem' }}>
+          {t('copySelectedBook')}
+        </button>
+      </form>
+    );
+  };
+
   return (
     <div>
       <Navbar isLoggedIn={true} />
@@ -298,7 +433,6 @@ const CreatePage: React.FC = () => {
           </Button>
 
           {isSearchMode ? (
-            // Search and copy UI
             <>
               <div className="ui fluid action input" style={{ marginBottom: '1rem' }}>
                 <input
@@ -327,16 +461,7 @@ const CreatePage: React.FC = () => {
                 />
               )}
 
-              {selectedBook && (
-                <div style={{ marginTop: '1rem' }}>
-                  <Button primary onClick={handleCopyBook}>
-                    {t('copySelectedBook')}
-                  </Button>
-                  <span style={{ marginLeft: '1rem' }}>
-                    {t('copiesCount', { count: selectedBook.copiesCount })}
-                  </span>
-                </div>
-              )}
+              {renderCopyForm()}
             </>
           ) : (
             // Create new book form
