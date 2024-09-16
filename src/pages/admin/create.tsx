@@ -5,7 +5,7 @@ import Navbar from '../../components/Navbar';
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { GetStaticProps } from 'next';
-import { Dropdown, DropdownProps, Button, Segment, Header, Icon } from 'semantic-ui-react';
+import { Dropdown, DropdownProps, Button, Segment, Header, Icon, Grid } from 'semantic-ui-react';
 import { toast } from 'react-toastify';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
@@ -200,11 +200,15 @@ const CreatePage: React.FC = () => {
     const book = searchResults.find(book => book._id === data.value);
     if (book) {
       setSelectedBook(book);
+      
+      // Parse the date and format it to YYYY-MM-DD
+      const dateAcquired = book.dateAcquired ? new Date(book.dateAcquired).toISOString().split('T')[0] : '';
+
       setFormData({
         ...formData,
         ...book,
         code: `${book.code}-copy`,
-        dateAcquired: book.dateAcquired, // Use the book's dateAcquired
+        dateAcquired: dateAcquired,
         imageUrl: book.imageUrl || '',
         copies: book.copies || 0,
       });
@@ -570,40 +574,46 @@ const CreatePage: React.FC = () => {
                     )}
                   </div>
 
-                  <div className="field">
-                    <label>{t('location')}</label>
-                    <input
-                      type="text"
-                      name="location"
-                      value={formData.location}
-                      onChange={handleChange}
-                      placeholder={t('enterLocation')}
-                      style={isFieldEmpty('location') ? errorStyle : {}}
-                    />
-                  </div>
+                  <Grid columns={2} stackable>
+                    <Grid.Row>
+                      <Grid.Column>
+                        <div className="field">
+                          <label>{t('location')}</label>
+                          <input
+                            type="text"
+                            name="location"
+                            value={formData.location}
+                            onChange={handleChange}
+                            placeholder={t('enterLocation')}
+                            style={isFieldEmpty('location') ? errorStyle : {}}
+                          />
+                        </div>
+                      </Grid.Column>
+                      <Grid.Column>
+                        <div className="field">
+                          <label>{t('cost')}</label>
+                          <input
+                            type="text"
+                            name="cost"
+                            value={formData.cost}
+                            onChange={handleChange}
+                            placeholder={t('enterCost')}
+                            style={isFieldEmpty('cost') ? errorStyle : {}}
+                          />
+                        </div>
+                      </Grid.Column>
+                    </Grid.Row>
+                  </Grid>
 
-                  <div className="two fields">
-                    <div className="field">
-                      <label>{t('cost')}</label>
-                      <input
-                        type="text"
-                        name="cost"
-                        value={formData.cost}
-                        onChange={handleChange}
-                        placeholder={t('enterCost')}
-                        style={isFieldEmpty('cost') ? errorStyle : {}}
-                      />
-                    </div>
-                    <div className="field">
-                      <label>{t('dateAcquired')}</label>
-                      <input
-                        type="date"
-                        name="dateAcquired"
-                        value={formData.dateAcquired}
-                        onChange={handleChange}
-                        style={isFieldEmpty('dateAcquired') ? errorStyle : {}}
-                      />
-                    </div>
+                  <div className="field">
+                    <label>{t('dateAcquired')}</label>
+                    <input
+                      type="date"
+                      name="dateAcquired"
+                      value={formData.dateAcquired}
+                      onChange={handleChange}
+                      style={isFieldEmpty('dateAcquired') ? errorStyle : {}}
+                    />
                   </div>
 
                   <div className="field">
