@@ -48,7 +48,6 @@ interface FormData {
   condition: 'good' | 'regular' | 'bad';
 }
 
-// Dynamically import CreatableSelect with ssr option set to false
 const CreatableSelect = dynamic(
   () => import('react-select/creatable').then((mod) => mod.default),
   { ssr: false }
@@ -116,18 +115,14 @@ const CreatePage: React.FC = () => {
 
   const handleCostChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value;
-    // Remove any non-digit characters except for a single decimal point
     value = value.replace(/[^\d.]/g, '');
-    // Ensure only one decimal point
     const parts = value.split('.');
     if (parts.length > 2) {
       value = parts[0] + '.' + parts.slice(1).join('');
     }
-    // Limit to two decimal places
     if (parts[1] && parts[1].length > 2) {
       value = parts[0] + '.' + parts[1].slice(0, 2);
     }
-    // Add .00 if no decimal point
     if (!value.includes('.')) {
       value += '.00';
     } else if (value.endsWith('.')) {
@@ -140,11 +135,9 @@ const CreatePage: React.FC = () => {
 
   const handleCostBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     let value = e.target.value;
-    // If the value is empty, set it to "0.00"
     if (value === '') {
       value = '0.00';
     } else {
-      // Ensure the value has two decimal places
       value = Number(value).toFixed(2);
     }
     setFormData({ ...formData, cost: value });
@@ -193,8 +186,9 @@ const CreatePage: React.FC = () => {
       };
       const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books`, bookData);
       if (response.status === 201) {
-        toast.success(t('bookCreatedSuccess'), { autoClose: 3000 });
-        // Reset form
+        setTimeout(() => {
+          toast.success(t('bookCreatedSuccess'), { autoClose: 3000 });
+        }, 100);
         setFormData({
           invoiceCode: '',
           code: '',
@@ -217,22 +211,19 @@ const CreatePage: React.FC = () => {
         setSelectedCategories([]);
       }
     } catch (error) {
-      console.error('Error creating book:', error);
-      toast.error(t('bookCreationError'), { autoClose: 3000 });
+      setTimeout(() => {
+        toast.error(t('bookCreationError'), { autoClose: 3000 });
+      }, 100);
     }
   };
 
   const handleSearch = async () => {
     setIsSearchMode(true);
-    console.log('Searching for:', searchTerm);
     try {
       const url = `${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books/search?q=${encodeURIComponent(searchTerm)}`;
-      console.log('Search URL:', url);
       const response = await axios.get(url);
-      console.log('Search response:', response.data);
       setSearchResults(response.data.books);
     } catch (error) {
-      console.error('Error searching books:', error);
       toast.error(t('errorSearchingBooks'));
     }
   };
@@ -242,7 +233,6 @@ const CreatePage: React.FC = () => {
     if (book) {
       setSelectedBook(book);
       
-      // Parse the date and format it to YYYY-MM-DD
       const dateAcquired = book.dateAcquired ? new Date(book.dateAcquired).toISOString().split('T')[0] : '';
 
       setFormData({
@@ -291,13 +281,18 @@ const CreatePage: React.FC = () => {
         imageUrl: formData.imageUrl,
       });
       if (response.status === 201) {
-        toast.success(t('bookCopiedSuccess'));
-        // Update the copies count in the UI
+        toast.success(t('bookCopiedSuccess'), {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
         setSelectedBook({
           ...selectedBook,
           copiesCount: (selectedBook.copiesCount || 0) + 1
         } as Book);
-        // Optionally, you can update the search results as well
         setSearchResults(prevResults =>
           prevResults.map(book =>
             book._id === selectedBook._id ? { ...book, copiesCount: (book.copiesCount || 0) + 1 } : book
@@ -305,15 +300,20 @@ const CreatePage: React.FC = () => {
         );
       }
     } catch (error) {
-      console.error('Error copying book:', error);
-      toast.error(t('bookCopyError'));
+        toast.error(t('bookCopyError'), {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     }
   };
 
   const toggleMode = () => {
     setIsSearchMode(!isSearchMode);
     if (isSearchMode) {
-      // Reset form when switching to create mode
       setFormData({
         invoiceCode: '',
         code: '',
@@ -333,7 +333,6 @@ const CreatePage: React.FC = () => {
       setSelectedCategories([]);
       setSelectedBook(null);
     } else {
-      // Clear search input and results when switching to search mode
       setSearchTerm('');
       setSearchResults([]);
     }
@@ -512,7 +511,6 @@ const CreatePage: React.FC = () => {
               {renderCopyForm()}
             </>
           ) : (
-            // Create new book form
             <Form onSubmit={handleSubmit} style={{ marginBottom: '2rem' }}>
               <Form.Input
                 label={t('invoiceCode')}

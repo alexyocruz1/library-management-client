@@ -22,15 +22,12 @@ function MyApp({ Component, pageProps }: AppProps) {
   const { t } = useTranslation('common');
 
   useEffect(() => {
-    // Clear any pending toasts
     toast.dismiss();
-    
+
     const loadDependencies = async () => {
       if (typeof window !== 'undefined') {
-        // Load jQuery and make it globally available
         const jQuery = await import('jquery');
         window.jQuery = window.$ = jQuery.default;
-        // Then load Fomantic UI
         await import('fomantic-ui-css/semantic.min.js');
       }
     };
@@ -47,7 +44,17 @@ function MyApp({ Component, pageProps }: AppProps) {
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
       </Head>
       <Component {...pageProps} />
-      <ToastContainer />
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </>
   );
 }
