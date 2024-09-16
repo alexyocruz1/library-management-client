@@ -82,6 +82,7 @@ const CreatePage: React.FC = () => {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [isValidImageUrl, setIsValidImageUrl] = useState<boolean | null>(null);
+  const [isSearchMode, setIsSearchMode] = useState(false);
 
   const selectId = 'category-select';
 
@@ -180,6 +181,7 @@ const CreatePage: React.FC = () => {
   };
 
   const handleSearch = async () => {
+    setIsSearchMode(true);
     console.log('Searching for:', searchTerm);
     try {
       const url = `${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books/search?q=${encodeURIComponent(searchTerm)}`;
@@ -205,6 +207,8 @@ const CreatePage: React.FC = () => {
         imageUrl: book.imageUrl || '',
         copies: book.copies || 0,
       });
+      setSelectedCategories(book.categories || []);
+      setIsSearchMode(true);
     }
   };
 
@@ -215,24 +219,56 @@ const CreatePage: React.FC = () => {
     }
 
     try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books/${selectedBook._id}/copy`, formData);
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books/${selectedBook._id}/copy`, {
+        invoiceCode: formData.invoiceCode,
+        // ... other fields you want to customize for the copy
+      });
       if (response.status === 201) {
         toast.success(t('bookCopiedSuccess'));
         // Update the copies count in the UI
         setSelectedBook({
           ...selectedBook,
-          copies: response.data.copiesCount
+          copiesCount: (selectedBook.copiesCount || 0) + 1
         } as Book);
         // Optionally, you can update the search results as well
         setSearchResults(prevResults =>
           prevResults.map(book =>
-            book._id === selectedBook._id ? { ...book, copiesCount: response.data.copiesCount } : book
+            book._id === selectedBook._id ? { ...book, copiesCount: (book.copiesCount || 0) + 1 } : book
           )
         );
       }
     } catch (error) {
       console.error('Error copying book:', error);
       toast.error(t('bookCopyError'));
+    }
+  };
+
+  const toggleMode = () => {
+    setIsSearchMode(!isSearchMode);
+    if (isSearchMode) {
+      // Reset form when switching to create mode
+      setFormData({
+        invoiceCode: '',
+        code: '',
+        title: '',
+        author: '',
+        editorial: '',
+        edition: '',
+        categories: [],
+        coverType: '',
+        location: '',
+        cost: '',
+        dateAcquired: new Date().toISOString().split('T')[0],
+        description: '',
+        imageUrl: '',
+        condition: 'good',
+      });
+      setSelectedCategories([]);
+      setSelectedBook(null);
+    } else {
+      // Clear search input and results when switching to search mode
+      setSearchTerm('');
+      setSearchResults([]);
     }
   };
 
@@ -251,226 +287,237 @@ const CreatePage: React.FC = () => {
         
         <Segment>
           <Header as='h3'>
-            <Icon name='search' />
-            <Header.Content>{t('searchExistingBooks')}</Header.Content>
+            <Icon name={isSearchMode ? 'search' : 'book'} />
+            <Header.Content>
+              {isSearchMode ? t('searchExistingBooks') : t('createNewBook')}
+            </Header.Content>
           </Header>
-          <div className="ui fluid action input" style={{ marginBottom: '1rem' }}>
-            <input
-              type="text"
-              placeholder={t('searchExistingBooks')}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-            />
-            <Button icon='search' onClick={handleSearch} />
-          </div>
+          
+          <Button onClick={toggleMode} style={{ marginBottom: '1rem' }}>
+            {isSearchMode ? t('createNewBook') : t('searchExistingBooks')}
+          </Button>
 
-          {searchResults.length > 0 && (
-            <Dropdown
-              placeholder={t('selectBookToCopy')}
-              fluid
-              search
-              selection
-              options={searchResults.map(book => ({
-                key: book._id,
-                text: book.title,
-                value: book._id,
-              }))}
-              onChange={handleBookSelect}
-              style={{ marginBottom: '1rem' }}
-            />
-          )}
-
-          {selectedBook && (
-            <div style={{ marginTop: '1rem' }}>
-              <Button primary onClick={handleCopyBook}>
-                {t('copySelectedBook')}
-              </Button>
-              <span style={{ marginLeft: '1rem' }}>
-                {t('copiesCount', { count: selectedBook.copiesCount })}
-              </span>
-            </div>
-          )}
-        </Segment>
-
-        <Segment>
-          <Header as='h3'>
-            <Icon name='book' />
-            <Header.Content>{t('createNewBook')}</Header.Content>
-          </Header>
-          <form className="ui form" onSubmit={handleSubmit} style={{ marginBottom: '2rem' }}>
-            <div className="field">
-              <label>{t('invoiceCode')}</label>
-              <input
-                type="text"
-                name="invoiceCode"
-                value={formData.invoiceCode}
-                onChange={handleChange}
-                placeholder={t('enterInvoiceCode')}
-                style={isFieldEmpty('invoiceCode') ? errorStyle : {}}
-              />
-            </div>
-            {type === 'book' && (
-              <>
-                <div className="field">
-                  <label>{t('title')}</label>
-                  <input
-                    type="text"
-                    name="title"
-                    value={formData.title}
-                    onChange={handleChange}
-                    placeholder={t('enterTitle')}
-                    style={isFieldEmpty('title') ? errorStyle : {}}
-                  />
-                </div>
-                <div className="field">
-                  <label>{t('author')}</label>
-                  <input
-                    type="text"
-                    name="author"
-                    value={formData.author}
-                    onChange={handleChange}
-                    placeholder={t('enterAuthor')}
-                    style={isFieldEmpty('author') ? errorStyle : {}}
-                  />
-                </div>
-                <div className="field">
-                  <label>{t('editorial')}</label>
-                  <input
-                    type="text"
-                    name="editorial"
-                    value={formData.editorial}
-                    onChange={handleChange}
-                    placeholder={t('enterEditorial')}
-                    style={isFieldEmpty('editorial') ? errorStyle : {}}
-                  />
-                </div>
-
-                <div className="three fields">
-                  <div className="field">
-                    <label>{t('edition')}</label>
-                    <input
-                      type="text"
-                      name="edition"
-                      value={formData.edition}
-                      onChange={handleChange}
-                      placeholder={t('enterEdition')}
-                      style={isFieldEmpty('edition') ? errorStyle : {}}
-                    />
-                  </div>
-                  <div className="field">
-                    <label>{t('coverType')}</label>
-                    <input
-                      type="text"
-                      name="coverType"
-                      value={formData.coverType}
-                      onChange={handleChange}
-                      placeholder={t('enterCoverType')}
-                      style={isFieldEmpty('coverType') ? errorStyle : {}}
-                    />
-                  </div>
-                  <div className="field">
-                    <label>{t('condition')}</label>
-                    <select
-                      name="condition"
-                      value={formData.condition}
-                      onChange={handleChange}
-                      style={isFieldEmpty('condition') ? errorStyle : {}}
-                    >
-                      <option value="good">{t('good')}</option>
-                      <option value="regular">{t('regular')}</option>
-                      <option value="bad">{t('bad')}</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="field">
-                  <label>{t('categories')}</label>
-                  {isMounted && (
-                    <CreatableSelect
-                      instanceId={selectId}
-                      isMulti
-                      options={categories.map(cat => ({ value: cat, label: cat }))}
-                      onChange={handleCategoryChange}
-                      value={selectedCategories.map(cat => ({ value: cat, label: cat }))}
-                      placeholder={t('selectOrTypeCategories')}
-                      formatCreateLabel={(inputValue) => `Create "${inputValue}"`}
-                    />
-                  )}
-                </div>
-
-                <div className="field">
-                  <label>{t('location')}</label>
-                  <input
-                    type="text"
-                    name="location"
-                    value={formData.location}
-                    onChange={handleChange}
-                    placeholder={t('enterLocation')}
-                    style={isFieldEmpty('location') ? errorStyle : {}}
-                  />
-                </div>
-
-                <div className="two fields">
-                  <div className="field">
-                    <label>{t('cost')}</label>
-                    <input
-                      type="text"
-                      name="cost"
-                      value={formData.cost}
-                      onChange={handleChange}
-                      placeholder={t('enterCost')}
-                      style={isFieldEmpty('cost') ? errorStyle : {}}
-                    />
-                  </div>
-                  <div className="field">
-                    <label>{t('dateAcquired')}</label>
-                    <input
-                      type="date"
-                      name="dateAcquired"
-                      value={formData.dateAcquired}
-                      onChange={handleChange}
-                      style={isFieldEmpty('dateAcquired') ? errorStyle : {}}
-                    />
-                  </div>
-                </div>
-
-                <div className="field">
-                  <label>{t('imageUrl')}</label>
-                  <input
-                    type="text"
-                    name="imageUrl"
-                    value={formData.imageUrl}
-                    onChange={handleImageUrlChange}
-                    placeholder={t('optionalImageUrl')}
-                  />
-                  {isValidImageUrl === false && (
-                    <div style={{ color: 'red', marginTop: '5px' }}>
-                      {t('invalidImageUrl')}
-                    </div>
-                  )}
-                  {previewImage && (
-                    <div style={{ marginTop: '10px' }}>
-                      <Image src={previewImage} alt="Preview" width={200} height={200} objectFit="contain" />
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
-            {type === 'equipment' && (
-              <div className="field">
-                <label>{t('description')}</label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                ></textarea>
+          {isSearchMode ? (
+            // Search and copy UI
+            <>
+              <div className="ui fluid action input" style={{ marginBottom: '1rem' }}>
+                <input
+                  type="text"
+                  placeholder={t('searchExistingBooks')}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                />
+                <Button icon='search' onClick={handleSearch} />
               </div>
-            )}
-            <button className="ui button" type="submit" style={{ marginTop: '1rem' }}>
-              {t('submit')}
-            </button>
-          </form>
+
+              {searchResults.length > 0 && (
+                <Dropdown
+                  placeholder={t('selectBookToCopy')}
+                  fluid
+                  search
+                  selection
+                  options={searchResults.map(book => ({
+                    key: book._id,
+                    text: book.title,
+                    value: book._id,
+                  }))}
+                  onChange={handleBookSelect}
+                  style={{ marginBottom: '1rem' }}
+                />
+              )}
+
+              {selectedBook && (
+                <div style={{ marginTop: '1rem' }}>
+                  <Button primary onClick={handleCopyBook}>
+                    {t('copySelectedBook')}
+                  </Button>
+                  <span style={{ marginLeft: '1rem' }}>
+                    {t('copiesCount', { count: selectedBook.copiesCount })}
+                  </span>
+                </div>
+              )}
+            </>
+          ) : (
+            // Create new book form
+            <form className="ui form" onSubmit={handleSubmit} style={{ marginBottom: '2rem' }}>
+              <div className="field">
+                <label>{t('invoiceCode')}</label>
+                <input
+                  type="text"
+                  name="invoiceCode"
+                  value={formData.invoiceCode}
+                  onChange={handleChange}
+                  placeholder={t('enterInvoiceCode')}
+                  style={isFieldEmpty('invoiceCode') ? errorStyle : {}}
+                />
+              </div>
+              {type === 'book' && (
+                <>
+                  <div className="field">
+                    <label>{t('title')}</label>
+                    <input
+                      type="text"
+                      name="title"
+                      value={formData.title}
+                      onChange={handleChange}
+                      placeholder={t('enterTitle')}
+                      style={isFieldEmpty('title') ? errorStyle : {}}
+                      disabled={isSearchMode}
+                    />
+                  </div>
+                  <div className="field">
+                    <label>{t('author')}</label>
+                    <input
+                      type="text"
+                      name="author"
+                      value={formData.author}
+                      onChange={handleChange}
+                      placeholder={t('enterAuthor')}
+                      style={isFieldEmpty('author') ? errorStyle : {}}
+                      disabled={isSearchMode}
+                    />
+                  </div>
+                  <div className="field">
+                    <label>{t('editorial')}</label>
+                    <input
+                      type="text"
+                      name="editorial"
+                      value={formData.editorial}
+                      onChange={handleChange}
+                      placeholder={t('enterEditorial')}
+                      style={isFieldEmpty('editorial') ? errorStyle : {}}
+                      disabled={isSearchMode}
+                    />
+                  </div>
+
+                  <div className="three fields">
+                    <div className="field">
+                      <label>{t('edition')}</label>
+                      <input
+                        type="text"
+                        name="edition"
+                        value={formData.edition}
+                        onChange={handleChange}
+                        placeholder={t('enterEdition')}
+                        style={isFieldEmpty('edition') ? errorStyle : {}}
+                        disabled={isSearchMode}
+                      />
+                    </div>
+                    <div className="field">
+                      <label>{t('coverType')}</label>
+                      <input
+                        type="text"
+                        name="coverType"
+                        value={formData.coverType}
+                        onChange={handleChange}
+                        placeholder={t('enterCoverType')}
+                        style={isFieldEmpty('coverType') ? errorStyle : {}}
+                      />
+                    </div>
+                    <div className="field">
+                      <label>{t('condition')}</label>
+                      <select
+                        name="condition"
+                        value={formData.condition}
+                        onChange={handleChange}
+                        style={isFieldEmpty('condition') ? errorStyle : {}}
+                      >
+                        <option value="good">{t('good')}</option>
+                        <option value="regular">{t('regular')}</option>
+                        <option value="bad">{t('bad')}</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="field">
+                    <label>{t('categories')}</label>
+                    {isMounted && (
+                      <CreatableSelect
+                        instanceId={selectId}
+                        isMulti
+                        options={categories.map(cat => ({ value: cat, label: cat }))}
+                        onChange={handleCategoryChange}
+                        value={selectedCategories.map(cat => ({ value: cat, label: cat }))}
+                        placeholder={t('selectOrTypeCategories')}
+                        formatCreateLabel={(inputValue) => `Create "${inputValue}"`}
+                      />
+                    )}
+                  </div>
+
+                  <div className="field">
+                    <label>{t('location')}</label>
+                    <input
+                      type="text"
+                      name="location"
+                      value={formData.location}
+                      onChange={handleChange}
+                      placeholder={t('enterLocation')}
+                      style={isFieldEmpty('location') ? errorStyle : {}}
+                    />
+                  </div>
+
+                  <div className="two fields">
+                    <div className="field">
+                      <label>{t('cost')}</label>
+                      <input
+                        type="text"
+                        name="cost"
+                        value={formData.cost}
+                        onChange={handleChange}
+                        placeholder={t('enterCost')}
+                        style={isFieldEmpty('cost') ? errorStyle : {}}
+                      />
+                    </div>
+                    <div className="field">
+                      <label>{t('dateAcquired')}</label>
+                      <input
+                        type="date"
+                        name="dateAcquired"
+                        value={formData.dateAcquired}
+                        onChange={handleChange}
+                        style={isFieldEmpty('dateAcquired') ? errorStyle : {}}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="field">
+                    <label>{t('imageUrl')}</label>
+                    <input
+                      type="text"
+                      name="imageUrl"
+                      value={formData.imageUrl}
+                      onChange={handleImageUrlChange}
+                      placeholder={t('optionalImageUrl')}
+                    />
+                    {isValidImageUrl === false && (
+                      <div style={{ color: 'red', marginTop: '5px' }}>
+                        {t('invalidImageUrl')}
+                      </div>
+                    )}
+                    {previewImage && (
+                      <div style={{ marginTop: '10px' }}>
+                        <Image src={previewImage} alt="Preview" width={200} height={200} objectFit="contain" />
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+              {type === 'equipment' && (
+                <div className="field">
+                  <label>{t('description')}</label>
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                  ></textarea>
+                </div>
+              )}
+              <button className="ui primary button" type="submit" style={{ marginTop: '1rem' }} disabled={isSearchMode}>
+                {t('submit')}
+              </button>
+            </form>
+          )}
         </Segment>
       </div>
     </div>
