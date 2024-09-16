@@ -64,7 +64,7 @@ const CreatePage: React.FC = () => {
     editorial: '',
     edition: '',
     categories: [],
-    coverType: '',
+    coverType: 'soft', // Set a default value
     location: '',
     cost: '',
     dateAcquired: new Date().toISOString().split('T')[0],
@@ -83,6 +83,7 @@ const CreatePage: React.FC = () => {
   const [isValidImageUrl, setIsValidImageUrl] = useState<boolean | null>(null);
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [isEditableField, setIsEditableField] = useState<{[key: string]: boolean}>({});
+  const [costInput, setCostInput] = useState('');
 
   const selectId = 'category-select';
 
@@ -114,33 +115,22 @@ const CreatePage: React.FC = () => {
   };
 
   const handleCostChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value;
-    value = value.replace(/[^\d.]/g, '');
-    const parts = value.split('.');
-    if (parts.length > 2) {
-      value = parts[0] + '.' + parts.slice(1).join('');
+    const value = e.target.value;
+    // Allow only numbers and a single decimal point
+    if (/^\d*\.?\d*$/.test(value)) {
+      setCostInput(value);
+      // Update formData with the parsed float value
+      setFormData(prev => ({ ...prev, cost: value ? parseFloat(value).toString() : '' }));
     }
-    if (parts[1] && parts[1].length > 2) {
-      value = parts[0] + '.' + parts[1].slice(0, 2);
-    }
-    if (!value.includes('.')) {
-      value += '.00';
-    } else if (value.endsWith('.')) {
-      value += '00';
-    } else if (value.split('.')[1].length === 1) {
-      value += '0';
-    }
-    setFormData({ ...formData, cost: value });
   };
 
-  const handleCostBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    let value = e.target.value;
-    if (value === '') {
-      value = '0.00';
-    } else {
-      value = Number(value).toFixed(2);
+  const handleCostBlur = () => {
+    // Format the value to always have two decimal places when leaving the field
+    if (costInput) {
+      const formattedValue = parseFloat(costInput).toFixed(2);
+      setCostInput(formattedValue);
+      setFormData(prev => ({ ...prev, cost: formattedValue }));
     }
-    setFormData({ ...formData, cost: value });
   };
 
   const isValidUrl = (url: string) => {
@@ -197,7 +187,7 @@ const CreatePage: React.FC = () => {
           editorial: '',
           edition: '',
           categories: [],
-          coverType: '',
+          coverType: 'soft',
           location: '',
           cost: '',
           dateAcquired: new Date().toISOString().split('T')[0],
@@ -209,6 +199,7 @@ const CreatePage: React.FC = () => {
         setSearchResults([]);
         setSubmitted(false);
         setSelectedCategories([]);
+        setCostInput('');
       }
     } catch (error) {
       setTimeout(() => {
@@ -234,6 +225,7 @@ const CreatePage: React.FC = () => {
       setSelectedBook(book);
       
       const dateAcquired = book.dateAcquired ? new Date(book.dateAcquired).toISOString().split('T')[0] : '';
+      const formattedCost = book.cost ? parseFloat(book.cost).toFixed(2) : '';
 
       setFormData({
         ...formData,
@@ -242,6 +234,9 @@ const CreatePage: React.FC = () => {
         dateAcquired: dateAcquired,
         imageUrl: book.imageUrl || '',
         copies: book.copies || 0,
+        cost: formattedCost,
+        coverType: book.coverType || 'soft', // Use the book's cover type or default to 'soft'
+        condition: book.condition || 'good', // Use the book's condition or default to 'good'
       });
       setSelectedCategories(book.categories || []);
       setIsSearchMode(true);
@@ -259,6 +254,7 @@ const CreatePage: React.FC = () => {
         editorial: false,
         edition: false,
       });
+      setCostInput(formattedCost);
     }
   };
 
@@ -322,7 +318,7 @@ const CreatePage: React.FC = () => {
         editorial: '',
         edition: '',
         categories: [],
-        coverType: '',
+        coverType: 'soft',
         location: '',
         cost: '',
         dateAcquired: new Date().toISOString().split('T')[0],
@@ -332,6 +328,7 @@ const CreatePage: React.FC = () => {
       });
       setSelectedCategories([]);
       setSelectedBook(null);
+      setCostInput('');
     } else {
       setSearchTerm('');
       setSearchResults([]);
@@ -390,7 +387,7 @@ const CreatePage: React.FC = () => {
           <input
             type="text"
             name="cost"
-            value={formData.cost}
+            value={costInput}
             onChange={handleCostChange}
             onBlur={handleCostBlur}
             placeholder={t('enterCost')}
@@ -619,7 +616,7 @@ const CreatePage: React.FC = () => {
                       fluid
                       label={t('cost')}
                       name="cost"
-                      value={formData.cost}
+                      value={costInput}
                       onChange={handleCostChange}
                       onBlur={handleCostBlur}
                       placeholder={t('enterCost')}
