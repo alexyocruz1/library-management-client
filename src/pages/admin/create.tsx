@@ -204,7 +204,7 @@ const CreatePage: React.FC = () => {
         ...formData,
         ...book,
         code: `${book.code}-copy`,
-        dateAcquired: new Date().toISOString().split('T')[0],
+        dateAcquired: book.dateAcquired, // Use the book's dateAcquired
         imageUrl: book.imageUrl || '',
         copies: book.copies || 0,
       });
