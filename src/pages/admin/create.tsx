@@ -218,6 +218,22 @@ const CreatePage: React.FC = () => {
     }
   };
 
+  const renderSearchResults = () => {
+    return searchResults.map((book) => ({
+      key: book._id,
+      text: (
+        <div>
+          <strong>{book.title}</strong>
+          <br />
+          {t('author')}: {book.author}
+          <br />
+          {t('edition')}: {book.edition} | {t('editorial')}: {book.editorial}
+        </div>
+      ),
+      value: book._id,
+    }));
+  };
+
   const handleBookSelect = (event: React.SyntheticEvent<HTMLElement, Event>, data: DropdownProps) => {
     const book = searchResults.find(book => book._id === data.value);
     if (book) {
@@ -483,11 +499,7 @@ const CreatePage: React.FC = () => {
                   fluid
                   search
                   selection
-                  options={searchResults.map(book => ({
-                    key: book._id,
-                    text: book.title,
-                    value: book._id,
-                  }))}
+                  options={renderSearchResults()}
                   onChange={handleBookSelect}
                   style={{ marginBottom: '1rem' }}
                 />

@@ -32,6 +32,11 @@ function MyApp({ Component, pageProps }: AppProps) {
       }
     };
     loadDependencies();
+
+    // Clear cache when app is opened
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage('CLEAR_CACHE');
+    }
   }, []);
 
   return (
