@@ -9,6 +9,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
 import React from 'react';
 import { useTranslation } from 'next-i18next';
+import { toast } from 'react-toastify';
 
 declare global {
   interface Window {
@@ -21,6 +22,9 @@ function MyApp({ Component, pageProps }: AppProps) {
   const { t } = useTranslation('common');
 
   useEffect(() => {
+    // Clear any pending toasts
+    toast.dismiss();
+    
     const loadDependencies = async () => {
       if (typeof window !== 'undefined') {
         // Load jQuery and make it globally available

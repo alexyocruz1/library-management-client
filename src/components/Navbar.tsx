@@ -6,6 +6,7 @@ import { useRouter } from 'next/router';
 import { Dropdown, Menu } from 'semantic-ui-react';
 import { Icon } from 'semantic-ui-react';
 import { useTranslation } from 'next-i18next';
+import { toast } from 'react-toastify';
 
 const navbarStyle = {
   display: 'flex',
@@ -62,6 +63,7 @@ const Navbar: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn = false }) => {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    toast.dismiss(); // Clear any pending toasts
     router.push('/login');
   };
 

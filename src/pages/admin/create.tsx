@@ -127,6 +127,14 @@ const CreatePage: React.FC = () => {
     if (parts[1] && parts[1].length > 2) {
       value = parts[0] + '.' + parts[1].slice(0, 2);
     }
+    // Add .00 if no decimal point
+    if (!value.includes('.')) {
+      value += '.00';
+    } else if (value.endsWith('.')) {
+      value += '00';
+    } else if (value.split('.')[1].length === 1) {
+      value += '0';
+    }
     setFormData({ ...formData, cost: value });
   };
 
@@ -185,7 +193,7 @@ const CreatePage: React.FC = () => {
       };
       const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books`, bookData);
       if (response.status === 201) {
-        toast.success(t('bookCreatedSuccess'));
+        toast.success(t('bookCreatedSuccess'), { autoClose: 3000 });
         // Reset form
         setFormData({
           invoiceCode: '',
@@ -210,7 +218,7 @@ const CreatePage: React.FC = () => {
       }
     } catch (error) {
       console.error('Error creating book:', error);
-      toast.error(t('bookCreationError'));
+      toast.error(t('bookCreationError'), { autoClose: 3000 });
     }
   };
 
