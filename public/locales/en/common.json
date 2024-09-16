@@ -83,5 +83,8 @@
     "selectOrTypeCategories": "Select or type categories",
     "invoiceCode": "Invoice Code",
     "enterInvoiceCode": "Enter invoice code",
-    "invalidImageUrl": "Invalid image URL. Please enter a valid URL."
+    "invalidImageUrl": "Invalid image URL. Please enter a valid URL.",
+    "selectCoverType": "Select Cover Type",
+    "hardCover": "Hard Cover",
+    "softCover": "Soft Cover"
 }

@@ -114,6 +114,14 @@ const CreatePage: React.FC = () => {
     setFormData(prevData => ({ ...prevData, [name]: value as string | number | string[] }));
   };
 
+  const handleCostChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Allow only numbers and up to two decimal places
+    if (/^\d*\.?\d{0,2}$/.test(value) || value === '') {
+      setFormData({ ...formData, cost: value });
+    }
+  };
+
   const isValidUrl = (url: string) => {
     try {
       new URL(url);
@@ -328,14 +336,16 @@ const CreatePage: React.FC = () => {
         </div>
         <div className="field">
           <label>{t('coverType')}</label>
-          <input
-            type="text"
+          <select
             name="coverType"
             value={formData.coverType}
             onChange={handleChange}
-            placeholder={t('enterCoverType')}
-            style={isFieldEmpty('coverType') ? errorStyle : {}}
-          />
+            required
+          >
+            <option value="">{t('selectCoverType')}</option>
+            <option value="hard">{t('hardCover')}</option>
+            <option value="soft">{t('softCover')}</option>
+          </select>
         </div>
         <div className="field">
           <label>{t('location')}</label>
@@ -354,7 +364,7 @@ const CreatePage: React.FC = () => {
             type="text"
             name="cost"
             value={formData.cost}
-            onChange={handleChange}
+            onChange={handleCostChange}
             placeholder={t('enterCost')}
             style={isFieldEmpty('cost') ? errorStyle : {}}
           />
@@ -523,14 +533,19 @@ const CreatePage: React.FC = () => {
                       error={isFieldEmpty('edition')}
                       disabled={isSearchMode}
                     />
-                    <Form.Input
-                      label={t('coverType')}
-                      name="coverType"
-                      value={formData.coverType}
-                      onChange={handleChange}
-                      placeholder={t('enterCoverType')}
-                      error={isFieldEmpty('coverType')}
-                    />
+                    <Form.Field>
+                      <label>{t('coverType')}</label>
+                      <select
+                        name="coverType"
+                        value={formData.coverType}
+                        onChange={handleChange}
+                        required
+                      >
+                        <option value="">{t('selectCoverType')}</option>
+                        <option value="hard">{t('hardCover')}</option>
+                        <option value="soft">{t('softCover')}</option>
+                      </select>
+                    </Form.Field>
                     <Form.Select
                       label={t('condition')}
                       name="condition"
@@ -575,7 +590,7 @@ const CreatePage: React.FC = () => {
                       label={t('cost')}
                       name="cost"
                       value={formData.cost}
-                      onChange={handleChange}
+                      onChange={handleCostChange}
                       placeholder={t('enterCost')}
                       error={isFieldEmpty('cost')}
                     />
