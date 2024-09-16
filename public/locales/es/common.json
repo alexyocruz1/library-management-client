@@ -86,5 +86,7 @@
     "invalidImageUrl": "URL de imagen inválida. Por favor, ingrese una URL válida.",
     "selectCoverType": "Seleccionar Cubierta",
     "hardCover": "Tapa Dura",
-    "softCover": "Tapa Blanda"
+    "softCover": "Tapa Blanda",
+    "newToUs": "¿Eres nuevo?",
+    "alreadyHaveAccount": "¿Ya tienes una cuenta?"
 }

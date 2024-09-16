@@ -8,6 +8,8 @@ import Navbar from '../components/Navbar';
 import Head from 'next/head';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Link from 'next/link';
+import { Form, Button, Message, Segment, Grid, Header } from 'semantic-ui-react';
 
 const SignUpPage: React.FC = () => {
   const { t } = useTranslation('common');
@@ -18,7 +20,8 @@ const SignUpPage: React.FC = () => {
     password: '',
     confirmPassword: '',
   });
-  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -26,11 +29,18 @@ const SignUpPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError('');
+    setSubmitted(true);
+    setLoading(true);
+
+    if (!formData.username || !formData.email || !formData.password || !formData.confirmPassword) {
+      toast.error(t('fillAllRequiredFields'));
+      setLoading(false);
+      return;
+    }
 
     if (formData.password !== formData.confirmPassword) {
-      setError(t('passwordsMismatch'));
       toast.error(t('passwordsMismatch'));
+      setLoading(false);
       return;
     }
 
@@ -45,16 +55,18 @@ const SignUpPage: React.FC = () => {
         toast.success(t('signupSuccess'));
         setTimeout(() => router.push('/login'), 3000);
       } else {
-        const errorMessage = response.data.message || t('signupError');
-        setError(errorMessage);
-        toast.error(errorMessage);
+        toast.error(response.data.message || t('signupError'));
       }
     } catch (error: any) {
       console.error('Signup error:', error);
-      const errorMessage = error.response?.data?.message || t('signupError');
-      setError(errorMessage);
-      toast.error(errorMessage);
+      toast.error(error.response?.data?.message || t('signupError'));
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const isFieldEmpty = (field: keyof typeof formData) => {
+    return submitted && !formData[field];
   };
 
   return (
@@ -63,59 +75,65 @@ const SignUpPage: React.FC = () => {
         <title>{t('signUp')}</title>
       </Head>
       <Navbar isLoggedIn={false} />
-      <div className="ui container" style={{ margin: '2rem auto', padding: '2rem', maxWidth: '600px' }}>
-        <h1>{t('signUp')}</h1>
-        <form className="ui form" onSubmit={handleSubmit}>
-          <div className="field">
-            <label>{t('username')}</label>
-            <input
-              type="text"
-              name="username"
-              value={formData.username}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div className="field">
-            <label>{t('email')}</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div className="field">
-            <label>{t('password')}</label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div className="field">
-            <label>{t('confirmPassword')}</label>
-            <input
-              type="password"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          {error && (
-            <div className="ui error message">
-              <p>{error}</p>
-            </div>
-          )}
-          <button className="ui primary button" type="submit">
+      <Grid textAlign='center' style={{ height: '80vh' }} verticalAlign='middle'>
+        <Grid.Column style={{ maxWidth: 450 }}>
+          <Header as='h2' color='teal' textAlign='center'>
             {t('signUp')}
-          </button>
-        </form>
-      </div>
+          </Header>
+          <Form size='large' onSubmit={handleSubmit} loading={loading}>
+            <Segment stacked>
+              <Form.Input
+                fluid
+                icon='user'
+                iconPosition='left'
+                placeholder={t('username')}
+                name='username'
+                value={formData.username}
+                onChange={handleChange}
+                error={isFieldEmpty('username')}
+              />
+              <Form.Input
+                fluid
+                icon='mail'
+                iconPosition='left'
+                placeholder={t('email')}
+                name='email'
+                value={formData.email}
+                onChange={handleChange}
+                error={isFieldEmpty('email')}
+              />
+              <Form.Input
+                fluid
+                icon='lock'
+                iconPosition='left'
+                placeholder={t('password')}
+                type='password'
+                name='password'
+                value={formData.password}
+                onChange={handleChange}
+                error={isFieldEmpty('password')}
+              />
+              <Form.Input
+                fluid
+                icon='lock'
+                iconPosition='left'
+                placeholder={t('confirmPassword')}
+                type='password'
+                name='confirmPassword'
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                error={isFieldEmpty('confirmPassword')}
+              />
+              <Button color='teal' fluid size='large' type='submit'>
+                {t('signUp')}
+              </Button>
+            </Segment>
+          </Form>
+          <Message>
+            {t('alreadyHaveAccount')} <Link href="/login">{t('login')}</Link>
+          </Message>
+        </Grid.Column>
+      </Grid>
       <ToastContainer />
     </>
   );

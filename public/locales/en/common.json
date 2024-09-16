@@ -86,5 +86,7 @@
     "invalidImageUrl": "Invalid image URL. Please enter a valid URL.",
     "selectCoverType": "Select Cover Type",
     "hardCover": "Hard Cover",
-    "softCover": "Soft Cover"
+    "softCover": "Soft Cover",
+    "newToUs": "New to us?",
+    "alreadyHaveAccount": "Already have an account?"
 }
