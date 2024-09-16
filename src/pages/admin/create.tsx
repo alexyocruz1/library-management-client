@@ -384,7 +384,7 @@ const CreatePage: React.FC = () => {
           <select
             name="condition"
             value={formData.condition}
-            onChange={handleChange}
+            onChange={(e) => setFormData({ ...formData, condition: e.target.value as 'good' | 'regular' | 'bad' })}
             style={isFieldEmpty('condition') ? errorStyle : {}}
           >
             <option value="good">{t('good')}</option>
@@ -533,29 +533,33 @@ const CreatePage: React.FC = () => {
                       error={isFieldEmpty('edition')}
                       disabled={isSearchMode}
                     />
-                    <Form.Field>
-                      <label>{t('coverType')}</label>
-                      <select
-                        name="coverType"
-                        value={formData.coverType}
-                        onChange={handleChange}
-                        required
-                      >
-                        <option value="hard">{t('hardCover')}</option>
-                        <option value="soft">{t('softCover')}</option>
-                      </select>
-                    </Form.Field>
                     <Form.Select
+                      fluid
+                      label={t('coverType')}
+                      name="coverType"
+                      options={[
+                        { key: 'hard', text: t('hardCover'), value: 'hard' },
+                        { key: 'soft', text: t('softCover'), value: 'soft' },
+                      ]}
+                      placeholder={t('selectCoverType')}
+                      value={formData.coverType}
+                      onChange={(_, data) => setFormData({ ...formData, coverType: data.value as string })}
+                      error={isFieldEmpty('coverType')}
+                    />
+                    <Form.Select
+                      fluid
                       label={t('condition')}
                       name="condition"
-                      value={formData.condition}
-                      onChange={handleChange}
-                      error={isFieldEmpty('condition')}
                       options={[
+                        { key: 'new', text: t('new'), value: 'new' },
                         { key: 'good', text: t('good'), value: 'good' },
                         { key: 'regular', text: t('regular'), value: 'regular' },
                         { key: 'bad', text: t('bad'), value: 'bad' },
                       ]}
+                      placeholder={t('selectCondition')}
+                      value={formData.condition}
+                      onChange={(_, data) => setFormData({ ...formData, condition: data.value as 'good' | 'regular' | 'bad' })}
+                      error={isFieldEmpty('condition')}
                     />
                   </Form.Group>
 

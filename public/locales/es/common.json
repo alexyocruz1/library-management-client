@@ -84,7 +84,7 @@
     "invoiceCode": "Código de Factura",
     "enterInvoiceCode": "Ingrese el código de factura",
     "invalidImageUrl": "URL de imagen inválida. Por favor, ingrese una URL válida.",
-    "selectCoverType": "Seleccionar Tipo de Cubierta",
+    "selectCoverType": "Seleccionar Cubierta",
     "hardCover": "Tapa Dura",
     "softCover": "Tapa Blanda"
 }
