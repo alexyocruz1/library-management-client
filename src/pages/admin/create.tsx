@@ -1,5 +1,5 @@
 // pages/admin/create.tsx
-import React, { useState, CSSProperties } from 'react';
+import React, { useState, CSSProperties, useEffect } from 'react';
 import axios from 'axios';
 import Navbar from '../../components/Navbar';
 import { useTranslation } from 'next-i18next';
@@ -7,6 +7,8 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { GetStaticProps } from 'next';
 import { Dropdown, DropdownProps, Button, Segment, Header, Icon } from 'semantic-ui-react';
 import { toast } from 'react-toastify';
+import CreatableSelect from 'react-select/creatable';
+import Image from 'next/image';
 
 interface Book {
   _id: string;
@@ -15,7 +17,7 @@ interface Book {
   author: string;
   editorial: string;
   edition: string;
-  category: string;
+  categories: string[];
   coverType: string;
   location: string;
   cost: string;
@@ -28,13 +30,13 @@ interface Book {
 }
 
 interface FormData {
-  [key: string]: string | number | undefined;
+  [key: string]: string | number | string[] | undefined;
   code: string;
   title: string;
   author: string;
   editorial: string;
   edition: string;
-  category: string;
+  categories: string[];
   coverType: string;
   location: string;
   cost: string;
@@ -54,7 +56,7 @@ const CreatePage: React.FC = () => {
     author: '',
     editorial: '',
     edition: '',
-    category: '',
+    categories: [],
     coverType: '',
     location: '',
     cost: '',
@@ -67,16 +69,42 @@ const CreatePage: React.FC = () => {
   const [searchResults, setSearchResults] = useState<Book[]>([]);
   const [submitted, setSubmitted] = useState(false);
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books/categories`);
+      setCategories(response.data.categories);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
+
+  const handleCategoryChange = (selectedOptions: any) => {
+    setSelectedCategories(selectedOptions.map((option: any) => option.value));
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleImageUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const url = e.target.value;
+    setFormData({ ...formData, imageUrl: url });
+    setPreviewImage(url);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
 
-    const requiredFields = ['title', 'author', 'editorial', 'edition', 'category', 'coverType', 'location', 'cost', 'dateAcquired'];
+    const requiredFields = ['title', 'author', 'editorial', 'edition', 'categories', 'coverType', 'location', 'cost', 'dateAcquired'];
     const emptyFields = requiredFields.filter(field => !formData[field]);
 
     if (emptyFields.length > 0) {
@@ -85,7 +113,11 @@ const CreatePage: React.FC = () => {
     }
 
     try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books`, formData);
+      const bookData = {
+        ...formData,
+        categories: selectedCategories,
+      };
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books`, bookData);
       if (response.status === 201) {
         toast.success(t('bookCreatedSuccess'));
         // Reset form
@@ -95,7 +127,7 @@ const CreatePage: React.FC = () => {
           author: '',
           editorial: '',
           edition: '',
-          category: '',
+          categories: [],
           coverType: '',
           location: '',
           cost: '',
@@ -107,6 +139,7 @@ const CreatePage: React.FC = () => {
         setSearchTerm('');
         setSearchResults([]);
         setSubmitted(false);
+        setSelectedCategories([]);
       }
     } catch (error) {
       console.error('Error creating book:', error);
@@ -282,17 +315,6 @@ const CreatePage: React.FC = () => {
                     />
                   </div>
                   <div className="field">
-                    <label>{t('category')}</label>
-                    <input
-                      type="text"
-                      name="category"
-                      value={formData.category}
-                      onChange={handleChange}
-                      placeholder={t('enterCategory')}
-                      style={isFieldEmpty('category') ? errorStyle : {}}
-                    />
-                  </div>
-                  <div className="field">
                     <label>{t('coverType')}</label>
                     <input
                       type="text"
@@ -303,31 +325,43 @@ const CreatePage: React.FC = () => {
                       style={isFieldEmpty('coverType') ? errorStyle : {}}
                     />
                   </div>
+                  <div className="field">
+                    <label>{t('condition')}</label>
+                    <select
+                      name="condition"
+                      value={formData.condition}
+                      onChange={handleChange}
+                      style={isFieldEmpty('condition') ? errorStyle : {}}
+                    >
+                      <option value="good">{t('good')}</option>
+                      <option value="regular">{t('regular')}</option>
+                      <option value="bad">{t('bad')}</option>
+                    </select>
+                  </div>
                 </div>
 
                 <div className="field">
-                  <label>{t('condition')}</label>
-                  <select
-                    name="condition"
-                    value={formData.condition}
-                    onChange={handleChange}
-                    style={isFieldEmpty('condition') ? errorStyle : {}}
-                  >
-                    <option value="good">{t('good')}</option>
-                    <option value="regular">{t('regular')}</option>
-                    <option value="bad">{t('bad')}</option>
-                  </select>
+                  <label>{t('categories')}</label>
+                  <CreatableSelect
+                    isMulti
+                    options={categories.map(cat => ({ value: cat, label: cat }))}
+                    onChange={handleCategoryChange}
+                    value={selectedCategories.map(cat => ({ value: cat, label: cat }))}
+                    placeholder={t('selectOrTypeCategories')}
+                    formatCreateLabel={(inputValue) => `Create "${inputValue}"`}
+                  />
                 </div>
 
                 <div className="field">
                   <label>{t('location')}</label>
-                  <textarea
+                  <input
+                    type="text"
                     name="location"
                     value={formData.location}
                     onChange={handleChange}
                     placeholder={t('enterLocation')}
                     style={isFieldEmpty('location') ? errorStyle : {}}
-                  ></textarea>
+                  />
                 </div>
 
                 <div className="two fields">
@@ -360,9 +394,14 @@ const CreatePage: React.FC = () => {
                     type="text"
                     name="imageUrl"
                     value={formData.imageUrl}
-                    onChange={handleChange}
+                    onChange={handleImageUrlChange}
                     placeholder={t('optionalImageUrl')}
                   />
+                  {previewImage && (
+                    <div style={{ marginTop: '10px' }}>
+                      <Image src={previewImage} alt="Preview" width={200} height={200} objectFit="contain" />
+                    </div>
+                  )}
                 </div>
               </>
             )}

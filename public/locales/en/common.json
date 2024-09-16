@@ -78,5 +78,7 @@
     "bad": "Bad",
     "createNewBook": "Create New Book",
     "new": "New",
-    "used": "Used"
+    "used": "Used",
+    "categories": "Categories",
+    "selectOrTypeCategories": "Select or type categories"
 }

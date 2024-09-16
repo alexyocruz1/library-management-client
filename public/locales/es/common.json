@@ -78,5 +78,7 @@
     "bad": "Malo",
     "new": "Nuevo",
     "used": "Usado",
-    "createNewBook": "Crear Nuevo Libro"
+    "createNewBook": "Crear Nuevo Libro",
+    "categories": "Categorías",
+    "selectOrTypeCategories": "Selecciona o escribe categorías"
 }
