@@ -80,5 +80,7 @@
     "new": "New",
     "used": "Used",
     "categories": "Categories",
-    "selectOrTypeCategories": "Select or type categories"
+    "selectOrTypeCategories": "Select or type categories",
+    "invoiceCode": "Invoice Code",
+    "enterInvoiceCode": "Enter invoice code"
 }

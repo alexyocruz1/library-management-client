@@ -80,5 +80,7 @@
     "used": "Usado",
     "createNewBook": "Crear Nuevo Libro",
     "categories": "Categorías",
-    "selectOrTypeCategories": "Selecciona o escribe categorías"
+    "selectOrTypeCategories": "Selecciona o escribe categorías",
+    "invoiceCode": "Código de Factura",
+    "enterInvoiceCode": "Ingrese el código de factura"
 }

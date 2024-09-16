@@ -7,7 +7,7 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { GetStaticProps } from 'next';
 import { Dropdown, DropdownProps, Button, Segment, Header, Icon } from 'semantic-ui-react';
 import { toast } from 'react-toastify';
-import CreatableSelect from 'react-select/creatable';
+import dynamic from 'next/dynamic';
 import Image from 'next/image';
 
 interface Book {
@@ -31,6 +31,7 @@ interface Book {
 
 interface FormData {
   [key: string]: string | number | string[] | undefined;
+  invoiceCode: string;
   code: string;
   title: string;
   author: string;
@@ -47,10 +48,17 @@ interface FormData {
   condition: 'good' | 'regular' | 'bad';
 }
 
+// Dynamically import CreatableSelect with ssr option set to false
+const CreatableSelect = dynamic(
+  () => import('react-select/creatable').then((mod) => mod.default),
+  { ssr: false }
+);
+
 const CreatePage: React.FC = () => {
   const { t } = useTranslation('common');
   const [type, setType] = useState<'book' | 'equipment'>('book');
   const [formData, setFormData] = useState<FormData>({
+    invoiceCode: '',
     code: '',
     title: '',
     author: '',
@@ -72,9 +80,13 @@ const CreatePage: React.FC = () => {
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  const selectId = 'category-select';
 
   useEffect(() => {
     fetchCategories();
+    setIsMounted(true);
   }, []);
 
   const fetchCategories = async () => {
@@ -97,14 +109,18 @@ const CreatePage: React.FC = () => {
   const handleImageUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const url = e.target.value;
     setFormData({ ...formData, imageUrl: url });
-    setPreviewImage(url);
+    if (isValidUrl(url)) {
+      setPreviewImage(url);
+    } else {
+      setPreviewImage(null);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
 
-    const requiredFields = ['title', 'author', 'editorial', 'edition', 'categories', 'coverType', 'location', 'cost', 'dateAcquired'];
+    const requiredFields = ['invoiceCode', 'title', 'author', 'editorial', 'edition', 'categories', 'coverType', 'location', 'cost', 'dateAcquired'];
     const emptyFields = requiredFields.filter(field => !formData[field]);
 
     if (emptyFields.length > 0) {
@@ -122,6 +138,7 @@ const CreatePage: React.FC = () => {
         toast.success(t('bookCreatedSuccess'));
         // Reset form
         setFormData({
+          invoiceCode: '',
           code: '',
           title: '',
           author: '',
@@ -166,6 +183,7 @@ const CreatePage: React.FC = () => {
     if (book) {
       setSelectedBook(book);
       setFormData({
+        ...formData,
         ...book,
         code: `${book.code}-copy`,
         dateAcquired: new Date().toISOString().split('T')[0],
@@ -208,6 +226,15 @@ const CreatePage: React.FC = () => {
   const errorStyle: CSSProperties = {
     borderColor: '#e0b4b4',
     backgroundColor: '#fff6f6',
+  };
+
+  const isValidUrl = (url: string) => {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
   };
 
   return (
@@ -266,6 +293,17 @@ const CreatePage: React.FC = () => {
             <Header.Content>{t('createNewBook')}</Header.Content>
           </Header>
           <form className="ui form" onSubmit={handleSubmit} style={{ marginBottom: '2rem' }}>
+            <div className="field">
+              <label>{t('invoiceCode')}</label>
+              <input
+                type="text"
+                name="invoiceCode"
+                value={formData.invoiceCode}
+                onChange={handleChange}
+                placeholder={t('enterInvoiceCode')}
+                style={isFieldEmpty('invoiceCode') ? errorStyle : {}}
+              />
+            </div>
             {type === 'book' && (
               <>
                 <div className="field">
@@ -342,14 +380,17 @@ const CreatePage: React.FC = () => {
 
                 <div className="field">
                   <label>{t('categories')}</label>
-                  <CreatableSelect
-                    isMulti
-                    options={categories.map(cat => ({ value: cat, label: cat }))}
-                    onChange={handleCategoryChange}
-                    value={selectedCategories.map(cat => ({ value: cat, label: cat }))}
-                    placeholder={t('selectOrTypeCategories')}
-                    formatCreateLabel={(inputValue) => `Create "${inputValue}"`}
-                  />
+                  {isMounted && (
+                    <CreatableSelect
+                      instanceId={selectId}
+                      isMulti
+                      options={categories.map(cat => ({ value: cat, label: cat }))}
+                      onChange={handleCategoryChange}
+                      value={selectedCategories.map(cat => ({ value: cat, label: cat }))}
+                      placeholder={t('selectOrTypeCategories')}
+                      formatCreateLabel={(inputValue) => `Create "${inputValue}"`}
+                    />
+                  )}
                 </div>
 
                 <div className="field">
