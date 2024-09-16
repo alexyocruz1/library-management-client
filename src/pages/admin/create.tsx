@@ -115,11 +115,27 @@ const CreatePage: React.FC = () => {
   };
 
   const handleCostChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    // Allow only numbers and up to two decimal places
-    if (/^\d*\.?\d{0,2}$/.test(value) || value === '') {
-      setFormData({ ...formData, cost: value });
+    let value = e.target.value;
+    // Remove any non-digit characters except for a single decimal point
+    value = value.replace(/[^\d.]/g, '');
+    // Ensure only one decimal point
+    const parts = value.split('.');
+    if (parts.length > 2) {
+      value = parts[0] + '.' + parts.slice(1).join('');
     }
+    // Limit to two decimal places
+    if (parts[1] && parts[1].length > 2) {
+      value = parseFloat(value).toFixed(2);
+    }
+    // Add .00 if no decimal point
+    if (!value.includes('.')) {
+      value += '.00';
+    } else if (value.endsWith('.')) {
+      value += '00';
+    } else if (value.split('.')[1].length === 1) {
+      value += '0';
+    }
+    setFormData({ ...formData, cost: value });
   };
 
   const isValidUrl = (url: string) => {
