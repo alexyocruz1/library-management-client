@@ -75,5 +75,8 @@
     "condition": "Condition",
     "good": "Good",
     "regular": "Regular",
-    "bad": "Bad"
+    "bad": "Bad",
+    "createNewBook": "Create New Book",
+    "new": "New",
+    "used": "Used"
 }

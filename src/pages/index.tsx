@@ -118,7 +118,14 @@ const IndexPage: React.FC = () => {
               </div>
             ))
           ) : (
-            <div className="ui message">{t('nothingOnShelves')}</div>
+            <div className="sixteen wide column">
+              <div className="ui placeholder segment">
+                <div className="ui icon header">
+                  <i className="search icon"></i>
+                  {t('nothingOnShelves')}
+                </div>
+              </div>
+            </div>
           )}
         </div>
         <div className="ui pagination menu" style={{ marginTop: '3rem' }}>

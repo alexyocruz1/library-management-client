@@ -77,5 +77,6 @@
     "regular": "Regular",
     "bad": "Malo",
     "new": "Nuevo",
-    "used": "Usado"
+    "used": "Usado",
+    "createNewBook": "Crear Nuevo Libro"
 }
