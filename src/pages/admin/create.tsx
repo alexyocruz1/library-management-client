@@ -24,6 +24,8 @@ interface Book {
   description: string;
   imageUrl?: string;
   copies?: number;
+  condition: 'new' | 'used';
+  copiesCount?: number;
 }
 
 interface FormData {
@@ -41,6 +43,7 @@ interface FormData {
   description: string;
   imageUrl: string;
   copies?: number;
+  condition: 'new' | 'used';
 }
 
 const CreatePage: React.FC = () => {
@@ -59,13 +62,14 @@ const CreatePage: React.FC = () => {
     dateAcquired: new Date().toISOString().split('T')[0],
     description: '',
     imageUrl: '',
+    condition: 'new',
   });
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<Book[]>([]);
   const [submitted, setSubmitted] = useState(false);
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -99,6 +103,7 @@ const CreatePage: React.FC = () => {
           dateAcquired: new Date().toISOString().split('T')[0],
           description: '',
           imageUrl: '',
+          condition: 'new',
         });
         setSearchTerm('');
         setSearchResults([]);
@@ -145,18 +150,18 @@ const CreatePage: React.FC = () => {
     }
 
     try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books/${selectedBook._id}/copy`);
-      if (response.status === 200) {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books/${selectedBook._id}/copy`, formData);
+      if (response.status === 201) {
         toast.success(t('bookCopiedSuccess'));
         // Update the copies count in the UI
         setSelectedBook({
           ...selectedBook,
-          copies: response.data.copies
+          copies: response.data.copiesCount
         } as Book);
         // Optionally, you can update the search results as well
         setSearchResults(prevResults =>
           prevResults.map(book =>
-            book._id === selectedBook._id ? { ...book, copies: response.data.copies } : book
+            book._id === selectedBook._id ? { ...book, copiesCount: response.data.copiesCount } : book
           )
         );
       }
@@ -213,7 +218,7 @@ const CreatePage: React.FC = () => {
             <Button primary onClick={handleCopyBook}>
               {t('copySelectedBook')}
             </Button>
-            <p>{t('copiesCount', { count: selectedBook.copies })}</p>
+            <p>{t('copiesCount', { count: selectedBook.copiesCount })}</p>
           </div>
         )}
 
@@ -253,39 +258,57 @@ const CreatePage: React.FC = () => {
                   style={isFieldEmpty('editorial') ? errorStyle : {}}
                 />
               </div>
-              <div className="field">
-                <label>{t('edition')}</label>
-                <input
-                  type="text"
-                  name="edition"
-                  value={formData.edition}
-                  onChange={handleChange}
-                  placeholder={t('enterEdition')}
-                  style={isFieldEmpty('edition') ? errorStyle : {}}
-                />
+
+              <div className="three fields">
+                <div className="field">
+                  <label>{t('edition')}</label>
+                  <input
+                    type="text"
+                    name="edition"
+                    value={formData.edition}
+                    onChange={handleChange}
+                    placeholder={t('enterEdition')}
+                    style={isFieldEmpty('edition') ? errorStyle : {}}
+                  />
+                </div>
+                <div className="field">
+                  <label>{t('category')}</label>
+                  <input
+                    type="text"
+                    name="category"
+                    value={formData.category}
+                    onChange={handleChange}
+                    placeholder={t('enterCategory')}
+                    style={isFieldEmpty('category') ? errorStyle : {}}
+                  />
+                </div>
+                <div className="field">
+                  <label>{t('coverType')}</label>
+                  <input
+                    type="text"
+                    name="coverType"
+                    value={formData.coverType}
+                    onChange={handleChange}
+                    placeholder={t('enterCoverType')}
+                    style={isFieldEmpty('coverType') ? errorStyle : {}}
+                  />
+                </div>
               </div>
+
               <div className="field">
-                <label>{t('category')}</label>
-                <input
-                  type="text"
-                  name="category"
-                  value={formData.category}
+                <label>{t('condition')}</label>
+                <select
+                  name="condition"
+                  value={formData.condition}
                   onChange={handleChange}
-                  placeholder={t('enterCategory')}
-                  style={isFieldEmpty('category') ? errorStyle : {}}
-                />
+                  style={isFieldEmpty('condition') ? errorStyle : {}}
+                >
+                  <option value="good">{t('good')}</option>
+                  <option value="regular">{t('regular')}</option>
+                  <option value="bad">{t('bad')}</option>
+                </select>
               </div>
-              <div className="field">
-                <label>{t('coverType')}</label>
-                <input
-                  type="text"
-                  name="coverType"
-                  value={formData.coverType}
-                  onChange={handleChange}
-                  placeholder={t('enterCoverType')}
-                  style={isFieldEmpty('coverType') ? errorStyle : {}}
-                />
-              </div>
+
               <div className="field">
                 <label>{t('location')}</label>
                 <textarea
@@ -296,27 +319,31 @@ const CreatePage: React.FC = () => {
                   style={isFieldEmpty('location') ? errorStyle : {}}
                 ></textarea>
               </div>
-              <div className="field">
-                <label>{t('cost')}</label>
-                <input
-                  type="text"
-                  name="cost"
-                  value={formData.cost}
-                  onChange={handleChange}
-                  placeholder={t('enterCost')}
-                  style={isFieldEmpty('cost') ? errorStyle : {}}
-                />
+
+              <div className="two fields">
+                <div className="field">
+                  <label>{t('cost')}</label>
+                  <input
+                    type="text"
+                    name="cost"
+                    value={formData.cost}
+                    onChange={handleChange}
+                    placeholder={t('enterCost')}
+                    style={isFieldEmpty('cost') ? errorStyle : {}}
+                  />
+                </div>
+                <div className="field">
+                  <label>{t('dateAcquired')}</label>
+                  <input
+                    type="date"
+                    name="dateAcquired"
+                    value={formData.dateAcquired}
+                    onChange={handleChange}
+                    style={isFieldEmpty('dateAcquired') ? errorStyle : {}}
+                  />
+                </div>
               </div>
-              <div className="field">
-                <label>{t('dateAcquired')}</label>
-                <input
-                  type="date"
-                  name="dateAcquired"
-                  value={formData.dateAcquired}
-                  onChange={handleChange}
-                  style={isFieldEmpty('dateAcquired') ? errorStyle : {}}
-                />
-              </div>
+
               <div className="field">
                 <label>{t('imageUrl')}</label>
                 <input

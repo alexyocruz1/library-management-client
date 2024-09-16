@@ -70,5 +70,12 @@
     "enterCode": "Ingrese el código del libro",
     "available": "Disponible",
     "borrowed": "Prestado",
-    "errorFetchingBooks": "Error al obtener los libros. Por favor, inténtalo de nuevo."
+    "errorFetchingBooks": "Error al obtener los libros. Por favor, inténtalo de nuevo.",
+    "appTitle": "Sistema de Gestión de Biblioteca",
+    "condition": "Condición",
+    "good": "Bueno",
+    "regular": "Regular",
+    "bad": "Malo",
+    "new": "Nuevo",
+    "used": "Usado"
 }

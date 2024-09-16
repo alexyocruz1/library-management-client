@@ -70,5 +70,10 @@
     "available": "Available",
     "borrowed": "Borrowed",
     "errorFetchingBooks": "Error fetching books. Please try again.",
-    "LogoutNavbar": "Logout"
+    "LogoutNavbar": "Logout",
+    "appTitle": "Library Management System",
+    "condition": "Condition",
+    "good": "Good",
+    "regular": "Regular",
+    "bad": "Bad"
 }

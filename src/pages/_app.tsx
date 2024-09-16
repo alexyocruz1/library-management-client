@@ -8,6 +8,7 @@ import { useEffect } from 'react';
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer } from 'react-toastify';
 import React from 'react';
+import { useTranslation } from 'next-i18next';
 
 declare global {
   interface Window {
@@ -17,6 +18,8 @@ declare global {
 }
 
 function MyApp({ Component, pageProps }: AppProps) {
+  const { t } = useTranslation('common');
+
   useEffect(() => {
     const loadDependencies = async () => {
       if (typeof window !== 'undefined') {
@@ -33,6 +36,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   return (
     <>
       <Head>
+        <title>{t('appTitle')}</title>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#317EFB" />
         <meta name="description" content="This is a PWA version of my app" />
