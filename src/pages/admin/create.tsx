@@ -125,15 +125,19 @@ const CreatePage: React.FC = () => {
     }
     // Limit to two decimal places
     if (parts[1] && parts[1].length > 2) {
-      value = parseFloat(value).toFixed(2);
+      value = parts[0] + '.' + parts[1].slice(0, 2);
     }
-    // Add .00 if no decimal point
-    if (!value.includes('.')) {
-      value += '.00';
-    } else if (value.endsWith('.')) {
-      value += '00';
-    } else if (value.split('.')[1].length === 1) {
-      value += '0';
+    setFormData({ ...formData, cost: value });
+  };
+
+  const handleCostBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    let value = e.target.value;
+    // If the value is empty, set it to "0.00"
+    if (value === '') {
+      value = '0.00';
+    } else {
+      // Ensure the value has two decimal places
+      value = Number(value).toFixed(2);
     }
     setFormData({ ...formData, cost: value });
   };
@@ -381,6 +385,7 @@ const CreatePage: React.FC = () => {
             name="cost"
             value={formData.cost}
             onChange={handleCostChange}
+            onBlur={handleCostBlur}
             placeholder={t('enterCost')}
             style={isFieldEmpty('cost') ? errorStyle : {}}
           />
@@ -610,6 +615,7 @@ const CreatePage: React.FC = () => {
                       name="cost"
                       value={formData.cost}
                       onChange={handleCostChange}
+                      onBlur={handleCostBlur}
                       placeholder={t('enterCost')}
                       error={isFieldEmpty('cost')}
                     />
