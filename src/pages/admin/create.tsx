@@ -541,7 +541,6 @@ const CreatePage: React.FC = () => {
                         onChange={handleChange}
                         required
                       >
-                        <option value="">{t('selectCoverType')}</option>
                         <option value="hard">{t('hardCover')}</option>
                         <option value="soft">{t('softCover')}</option>
                       </select>
