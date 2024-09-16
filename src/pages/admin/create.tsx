@@ -5,7 +5,7 @@ import Navbar from '../../components/Navbar';
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { GetStaticProps } from 'next';
-import { Dropdown, DropdownProps, Button, Segment, Header, Icon, Grid } from 'semantic-ui-react';
+import { Dropdown, DropdownProps, Button, Segment, Header, Icon, Grid, Form, InputOnChangeData, TextAreaProps } from 'semantic-ui-react';
 import { toast } from 'react-toastify';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
@@ -105,8 +105,13 @@ const CreatePage: React.FC = () => {
     setSelectedCategories(selectedOptions.map((option: any) => option.value));
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | React.SyntheticEvent<HTMLElement, Event>,
+    data?: DropdownProps | InputOnChangeData | TextAreaProps
+  ) => {
+    const name = (data && 'name' in data) ? data.name as string : (e.target as HTMLInputElement).name;
+    const value = (data && 'value' in data) ? data.value : (e.target as HTMLInputElement).value;
+    setFormData(prevData => ({ ...prevData, [name]: value as string | number | string[] }));
   };
 
   const isValidUrl = (url: string) => {
@@ -469,97 +474,78 @@ const CreatePage: React.FC = () => {
             </>
           ) : (
             // Create new book form
-            <form className="ui form" onSubmit={handleSubmit} style={{ marginBottom: '2rem' }}>
-              <div className="field">
-                <label>{t('invoiceCode')}</label>
-                <input
-                  type="text"
-                  name="invoiceCode"
-                  value={formData.invoiceCode}
-                  onChange={handleChange}
-                  placeholder={t('enterInvoiceCode')}
-                  style={isFieldEmpty('invoiceCode') ? errorStyle : {}}
-                />
-              </div>
+            <Form onSubmit={handleSubmit} style={{ marginBottom: '2rem' }}>
+              <Form.Input
+                label={t('invoiceCode')}
+                name="invoiceCode"
+                value={formData.invoiceCode}
+                onChange={handleChange}
+                placeholder={t('enterInvoiceCode')}
+                error={isFieldEmpty('invoiceCode')}
+              />
               {type === 'book' && (
                 <>
-                  <div className="field">
-                    <label>{t('title')}</label>
-                    <input
-                      type="text"
-                      name="title"
-                      value={formData.title}
-                      onChange={handleChange}
-                      placeholder={t('enterTitle')}
-                      style={isFieldEmpty('title') ? errorStyle : {}}
-                      disabled={isSearchMode}
-                    />
-                  </div>
-                  <div className="field">
-                    <label>{t('author')}</label>
-                    <input
-                      type="text"
-                      name="author"
-                      value={formData.author}
-                      onChange={handleChange}
-                      placeholder={t('enterAuthor')}
-                      style={isFieldEmpty('author') ? errorStyle : {}}
-                      disabled={isSearchMode}
-                    />
-                  </div>
-                  <div className="field">
-                    <label>{t('editorial')}</label>
-                    <input
-                      type="text"
-                      name="editorial"
-                      value={formData.editorial}
-                      onChange={handleChange}
-                      placeholder={t('enterEditorial')}
-                      style={isFieldEmpty('editorial') ? errorStyle : {}}
-                      disabled={isSearchMode}
-                    />
-                  </div>
+                  <Form.Input
+                    label={t('title')}
+                    name="title"
+                    value={formData.title}
+                    onChange={handleChange}
+                    placeholder={t('enterTitle')}
+                    error={isFieldEmpty('title')}
+                    disabled={isSearchMode}
+                  />
+                  <Form.Input
+                    label={t('author')}
+                    name="author"
+                    value={formData.author}
+                    onChange={handleChange}
+                    placeholder={t('enterAuthor')}
+                    error={isFieldEmpty('author')}
+                    disabled={isSearchMode}
+                  />
+                  <Form.Input
+                    label={t('editorial')}
+                    name="editorial"
+                    value={formData.editorial}
+                    onChange={handleChange}
+                    placeholder={t('enterEditorial')}
+                    error={isFieldEmpty('editorial')}
+                    disabled={isSearchMode}
+                  />
 
-                  <div className="three fields">
-                    <div className="field">
-                      <label>{t('edition')}</label>
-                      <input
-                        type="text"
-                        name="edition"
-                        value={formData.edition}
-                        onChange={handleChange}
-                        placeholder={t('enterEdition')}
-                        style={isFieldEmpty('edition') ? errorStyle : {}}
-                        disabled={isSearchMode}
-                      />
-                    </div>
-                    <div className="field">
-                      <label>{t('coverType')}</label>
-                      <input
-                        type="text"
-                        name="coverType"
-                        value={formData.coverType}
-                        onChange={handleChange}
-                        placeholder={t('enterCoverType')}
-                        style={isFieldEmpty('coverType') ? errorStyle : {}}
-                      />
-                    </div>
-                    <div className="field">
-                      <label>{t('condition')}</label>
-                      <select
-                        name="condition"
-                        value={formData.condition}
-                        onChange={handleChange}
-                        style={isFieldEmpty('condition') ? errorStyle : {}}
-                      >
-                        <option value="good">{t('good')}</option>
-                        <option value="regular">{t('regular')}</option>
-                        <option value="bad">{t('bad')}</option>
-                      </select>
-                    </div>
-                  </div>
+                  <Form.Group widths='equal'>
+                    <Form.Input
+                      label={t('edition')}
+                      name="edition"
+                      value={formData.edition}
+                      onChange={handleChange}
+                      placeholder={t('enterEdition')}
+                      error={isFieldEmpty('edition')}
+                      disabled={isSearchMode}
+                    />
+                    <Form.Input
+                      label={t('coverType')}
+                      name="coverType"
+                      value={formData.coverType}
+                      onChange={handleChange}
+                      placeholder={t('enterCoverType')}
+                      error={isFieldEmpty('coverType')}
+                    />
+                    <Form.Select
+                      label={t('condition')}
+                      name="condition"
+                      value={formData.condition}
+                      onChange={handleChange}
+                      error={isFieldEmpty('condition')}
+                      options={[
+                        { key: 'good', text: t('good'), value: 'good' },
+                        { key: 'regular', text: t('regular'), value: 'regular' },
+                        { key: 'bad', text: t('bad'), value: 'bad' },
+                      ]}
+                    />
+                  </Form.Group>
 
-                  <div className="field">
+                  <Form.Field>
                     <label>{t('categories')}</label>
                     {isMounted && (
                       <CreatableSelect
@@ -572,86 +558,70 @@ const CreatePage: React.FC = () => {
                         formatCreateLabel={(inputValue) => `Create "${inputValue}"`}
                       />
                     )}
-                  </div>
+                  </Form.Field>
 
-                  <Grid columns={2} stackable>
-                    <Grid.Row>
-                      <Grid.Column>
-                        <div className="field">
-                          <label>{t('location')}</label>
-                          <input
-                            type="text"
-                            name="location"
-                            value={formData.location}
-                            onChange={handleChange}
-                            placeholder={t('enterLocation')}
-                            style={isFieldEmpty('location') ? errorStyle : {}}
-                          />
-                        </div>
-                      </Grid.Column>
-                      <Grid.Column>
-                        <div className="field">
-                          <label>{t('cost')}</label>
-                          <input
-                            type="text"
-                            name="cost"
-                            value={formData.cost}
-                            onChange={handleChange}
-                            placeholder={t('enterCost')}
-                            style={isFieldEmpty('cost') ? errorStyle : {}}
-                          />
-                        </div>
-                      </Grid.Column>
-                    </Grid.Row>
-                  </Grid>
-
-                  <div className="field">
-                    <label>{t('dateAcquired')}</label>
-                    <input
-                      type="date"
-                      name="dateAcquired"
-                      value={formData.dateAcquired}
+                  <Form.Group widths='equal'>
+                    <Form.Input
+                      fluid
+                      label={t('location')}
+                      name="location"
+                      value={formData.location}
                       onChange={handleChange}
-                      style={isFieldEmpty('dateAcquired') ? errorStyle : {}}
+                      placeholder={t('enterLocation')}
+                      error={isFieldEmpty('location')}
                     />
-                  </div>
+                    <Form.Input
+                      fluid
+                      label={t('cost')}
+                      name="cost"
+                      value={formData.cost}
+                      onChange={handleChange}
+                      placeholder={t('enterCost')}
+                      error={isFieldEmpty('cost')}
+                    />
+                  </Form.Group>
 
-                  <div className="field">
-                    <label>{t('imageUrl')}</label>
-                    <input
-                      type="text"
-                      name="imageUrl"
-                      value={formData.imageUrl}
-                      onChange={handleImageUrlChange}
-                      placeholder={t('optionalImageUrl')}
-                    />
-                    {isValidImageUrl === false && (
-                      <div style={{ color: 'red', marginTop: '5px' }}>
-                        {t('invalidImageUrl')}
-                      </div>
-                    )}
-                    {previewImage && (
-                      <div style={{ marginTop: '10px' }}>
-                        <Image src={previewImage} alt="Preview" width={200} height={200} objectFit="contain" />
-                      </div>
-                    )}
-                  </div>
+                  <Form.Input
+                    label={t('dateAcquired')}
+                    type="date"
+                    name="dateAcquired"
+                    value={formData.dateAcquired}
+                    onChange={handleChange}
+                    error={isFieldEmpty('dateAcquired')}
+                  />
+
+                  <Form.Input
+                    label={t('imageUrl')}
+                    name="imageUrl"
+                    value={formData.imageUrl}
+                    onChange={handleImageUrlChange}
+                    placeholder={t('optionalImageUrl')}
+                    error={isValidImageUrl === false}
+                  />
+                  {isValidImageUrl === false && (
+                    <div style={{ color: 'red', marginTop: '5px' }}>
+                      {t('invalidImageUrl')}
+                    </div>
+                  )}
+                  {previewImage && (
+                    <div style={{ marginTop: '10px' }}>
+                      <Image src={previewImage} alt="Preview" width={200} height={200} objectFit="contain" />
+                    </div>
+                  )}
                 </>
               )}
               {type === 'equipment' && (
-                <div className="field">
-                  <label>{t('description')}</label>
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                  ></textarea>
-                </div>
+                <Form.TextArea
+                  label={t('description')}
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                />
               )}
-              <button className="ui primary button" type="submit" style={{ marginTop: '1rem' }} disabled={isSearchMode}>
+              <Button primary type="submit" style={{ marginTop: '1rem' }} disabled={isSearchMode}>
                 {t('submit')}
-              </button>
-            </form>
+              </Button>
+            </Form>
           )}
         </Segment>
       </div>
