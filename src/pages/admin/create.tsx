@@ -174,11 +174,11 @@ const CreatePage: React.FC = () => {
         ...formData,
         categories: selectedCategories,
       };
+      console.log('Submitting book data:', bookData);
       const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books`, bookData);
+      console.log('API response:', response);
       if (response.status === 201) {
-        setTimeout(() => {
-          toast.success(t('bookCreatedSuccess'), { autoClose: 3000 });
-        }, 100);
+        toast.success(t('bookCreatedSuccess'));
         setFormData({
           invoiceCode: '',
           code: '',
@@ -202,9 +202,8 @@ const CreatePage: React.FC = () => {
         setCostInput('');
       }
     } catch (error) {
-      setTimeout(() => {
-        toast.error(t('bookCreationError'), { autoClose: 3000 });
-      }, 100);
+      console.error('Error creating book:', error);
+      toast.error(t('bookCreationError'));
     }
   };
 
@@ -266,6 +265,7 @@ const CreatePage: React.FC = () => {
     }
 
     try {
+      console.log('Copying book:', selectedBook._id);
       const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books/${selectedBook._id}/copy`, {
         invoiceCode: formData.invoiceCode,
         coverType: formData.coverType,
@@ -276,15 +276,9 @@ const CreatePage: React.FC = () => {
         categories: selectedCategories,
         imageUrl: formData.imageUrl,
       });
+      console.log('API response:', response);
       if (response.status === 201) {
-        toast.success(t('bookCopiedSuccess'), {
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
+        toast.success(t('bookCopiedSuccess'));
         setSelectedBook({
           ...selectedBook,
           copiesCount: (selectedBook.copiesCount || 0) + 1
@@ -296,14 +290,8 @@ const CreatePage: React.FC = () => {
         );
       }
     } catch (error) {
-        toast.error(t('bookCopyError'), {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
+      console.error('Error copying book:', error);
+      toast.error(t('bookCopyError'));
     }
   };
 
