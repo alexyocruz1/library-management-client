@@ -81,6 +81,7 @@ const CreatePage: React.FC = () => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [isValidImageUrl, setIsValidImageUrl] = useState<boolean | null>(null);
 
   const selectId = 'category-select';
 
@@ -106,12 +107,26 @@ const CreatePage: React.FC = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const isValidUrl = (url: string) => {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   const handleImageUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const url = e.target.value;
     setFormData({ ...formData, imageUrl: url });
-    if (isValidUrl(url)) {
+    if (url === '') {
+      setIsValidImageUrl(null);
+      setPreviewImage(null);
+    } else if (isValidUrl(url)) {
+      setIsValidImageUrl(true);
       setPreviewImage(url);
     } else {
+      setIsValidImageUrl(false);
       setPreviewImage(null);
     }
   };
@@ -226,15 +241,6 @@ const CreatePage: React.FC = () => {
   const errorStyle: CSSProperties = {
     borderColor: '#e0b4b4',
     backgroundColor: '#fff6f6',
-  };
-
-  const isValidUrl = (url: string) => {
-    try {
-      new URL(url);
-      return true;
-    } catch {
-      return false;
-    }
   };
 
   return (
@@ -438,6 +444,11 @@ const CreatePage: React.FC = () => {
                     onChange={handleImageUrlChange}
                     placeholder={t('optionalImageUrl')}
                   />
+                  {isValidImageUrl === false && (
+                    <div style={{ color: 'red', marginTop: '5px' }}>
+                      {t('invalidImageUrl')}
+                    </div>
+                  )}
                   {previewImage && (
                     <div style={{ marginTop: '10px' }}>
                       <Image src={previewImage} alt="Preview" width={200} height={200} objectFit="contain" />

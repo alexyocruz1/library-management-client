@@ -82,5 +82,6 @@
     "categories": "Categories",
     "selectOrTypeCategories": "Select or type categories",
     "invoiceCode": "Invoice Code",
-    "enterInvoiceCode": "Enter invoice code"
+    "enterInvoiceCode": "Enter invoice code",
+    "invalidImageUrl": "Invalid image URL. Please enter a valid URL."
 }
