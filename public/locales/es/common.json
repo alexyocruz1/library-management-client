@@ -33,7 +33,7 @@
     "cost": "Costo",
     "dateAcquired": "Fecha de Adquisición",
     "description": "Descripción",
-    "submit": "Enviar",
+    "submit": "Guardar",
     "borrowReturn": "Prestar / Devolver Libro",
     "borrow": "Prestar",
     "return": "Devolver",
