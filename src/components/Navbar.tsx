@@ -3,9 +3,34 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useMediaQuery } from 'react-responsive';
 import { useRouter } from 'next/router';
-import styles from '../styles/components/Navbar.module.css'; // Import the CSS module
-import { Dropdown } from 'semantic-ui-react'; // Import Fomantic UI Dropdown
+import { Dropdown, Menu } from 'semantic-ui-react';
+import { Icon } from 'semantic-ui-react';
 import { useTranslation } from 'next-i18next';
+
+const navbarStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  height: '50px',
+  backgroundColor: '#f0f4f8', // Soft blue-gray background
+};
+
+const navItemStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  height: '100%',
+  color: '#4a5568',
+  transition: 'background-color 0.3s ease',
+};
+
+const navItemHoverStyle = {
+  ...navItemStyle,
+  backgroundColor: '#e2e8f0',
+};
+
+const activeItemStyle = {
+  ...navItemStyle,
+  backgroundColor: '#e2e8f0',
+};
 
 const Navbar: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn = false }) => {
   const { t } = useTranslation('common');
@@ -41,47 +66,50 @@ const Navbar: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn = false }) => {
   };
 
   return (
-    <div className={`ui mini menu ${styles.navbar}`}>
-      <Link href="/" passHref>
-        <span className={`active item ${styles.navItem} ${styles.activeItem}`}>{t('homeNavbar')}</span>
-      </Link>
-      <div className={`right menu ${styles.navMenu}`}>
+    <Menu secondary style={navbarStyle}>
+      <Menu.Item as={Link} href="/" style={navItemStyle}>
+        <Icon name="book" /> {t('homeNavbar')}
+      </Menu.Item>
+
+      <Menu.Menu position="right">
         <Dropdown
           item
+          icon="world"
           text={t('languageNavbar')}
-          className={`ui dropdown item ${styles.navItem}`}
+          style={navItemStyle}
           onChange={changeLanguage}
           options={[
-            { key: 'en', value: 'en', text: 'English' },
-            { key: 'es', value: 'es', text: 'Español' },
+            { key: 'en', value: 'en', text: 'English', flag: 'us' },
+            { key: 'es', value: 'es', text: 'Español', flag: 'es' },
           ]}
           value={router.locale}
         />
+
         {showMobileMenu ? (
-          <Dropdown item text="Menu" className={`ui dropdown item ${styles.navItem}`}>
-            <Dropdown.Menu className={styles.dropdownMenu}>
+          <Dropdown item icon="bars" style={navItemStyle}>
+            <Dropdown.Menu>
               {isLoggedIn && (
                 <>
-                  <Link href="/admin/create" passHref>
-                    <Dropdown.Item className={styles.navItem}>{t('createBookNavbar')}</Dropdown.Item>
-                  </Link>
-                  <Link href="/admin/borrow-return" passHref>
-                    <Dropdown.Item className={styles.navItem}>{t('borrowBookNavbar')}</Dropdown.Item>
-                  </Link>
+                  <Dropdown.Item as={Link} href="/admin/create">
+                    <Icon name="plus" /> {t('createBookNavbar')}
+                  </Dropdown.Item>
+                  <Dropdown.Item as={Link} href="/admin/borrow-return">
+                    <Icon name="exchange" /> {t('borrowBookNavbar')}
+                  </Dropdown.Item>
                 </>
               )}
               {isLoggedIn ? (
-                <Dropdown.Item className={styles.navItem}>
-                  <div className="ui primary button" onClick={handleLogout}>{t('logoutNavbar')}</div>
+                <Dropdown.Item onClick={handleLogout}>
+                  <Icon name="sign out" /> {t('logoutNavbar')}
                 </Dropdown.Item>
               ) : (
                 <>
-                  <div className={`item ${styles.navItem}`}>
-                    <div className="ui primary button" onClick={handleSignUp}>{t('signupNavbar')}</div>
-                  </div>
-                  <div className={`item ${styles.navItem}`}>
-                    <div className="ui secondary button" onClick={handleLogin}>{t('loginNavbar')}</div>
-                  </div>
+                  <Dropdown.Item onClick={handleSignUp}>
+                    <Icon name="user plus" /> {t('signupNavbar')}
+                  </Dropdown.Item>
+                  <Dropdown.Item onClick={handleLogin}>
+                    <Icon name="sign in" /> {t('loginNavbar')}
+                  </Dropdown.Item>
                 </>
               )}
             </Dropdown.Menu>
@@ -90,32 +118,32 @@ const Navbar: React.FC<{ isLoggedIn: boolean }> = ({ isLoggedIn = false }) => {
           <>
             {isLoggedIn && (
               <>
-                <Link href="/admin/create" passHref>
-                  <span className={`item ${styles.navItem}`}>{t('createBookNavbar')}</span>
-                </Link>
-                <Link href="/admin/borrow-return" passHref>
-                  <span className={`item ${styles.navItem}`}>{t('borrowBookNavbar')}</span>
-                </Link>
+                <Menu.Item as={Link} href="/admin/create" style={navItemStyle}>
+                  <Icon name="plus" /> {t('createBookNavbar')}
+                </Menu.Item>
+                <Menu.Item as={Link} href="/admin/borrow-return" style={navItemStyle}>
+                  <Icon name="exchange" /> {t('borrowBookNavbar')}
+                </Menu.Item>
               </>
             )}
             {isLoggedIn ? (
-              <div className={`item ${styles.navItem}`}>
-                <div className="ui primary button" onClick={handleLogout}>{t('logoutNavbar')}</div>
-              </div>
+              <Menu.Item style={navItemStyle} onClick={handleLogout}>
+                <Icon name="sign out" /> {t('logoutNavbar')}
+              </Menu.Item>
             ) : (
               <>
-                <div className={`item ${styles.navItem}`}>
-                  <div className="ui primary button" onClick={handleSignUp}>{t('signupNavbar')}</div>
-                </div>
-                <div className={`item ${styles.navItem}`}>
-                  <div className="ui secondary button" onClick={handleLogin}>{t('loginNavbar')}</div>
-                </div>
+                <Menu.Item style={navItemStyle} onClick={handleSignUp}>
+                  <Icon name="user plus" /> {t('signupNavbar')}
+                </Menu.Item>
+                <Menu.Item style={navItemStyle} onClick={handleLogin}>
+                  <Icon name="sign in" /> {t('loginNavbar')}
+                </Menu.Item>
               </>
             )}
           </>
         )}
-      </div>
-    </div>
+      </Menu.Menu>
+    </Menu>
   );
 };
 
