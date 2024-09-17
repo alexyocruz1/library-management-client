@@ -6,9 +6,10 @@ import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { GetStaticProps } from 'next';
 import { Dropdown, DropdownProps, Button, Segment, Header, Icon, Grid, Form, InputOnChangeData, TextAreaProps } from 'semantic-ui-react';
-import { toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
+import 'react-toastify/dist/ReactToastify.css';
 
 interface Book {
   _id: string;
@@ -102,7 +103,15 @@ const CreatePage: React.FC = () => {
   };
 
   const handleCategoryChange = (selectedOptions: any) => {
-    setSelectedCategories(selectedOptions.map((option: any) => option.value));
+    const newCategories = selectedOptions.map((option: any) => option.value);
+    setSelectedCategories(newCategories);
+    
+    // Check for new categories and add them to the categories state
+    newCategories.forEach((category: string) => {
+      if (!categories.includes(category)) {
+        setCategories(prevCategories => [...prevCategories, category]);
+      }
+    });
   };
 
   const handleChange = (
@@ -228,6 +237,8 @@ const CreatePage: React.FC = () => {
           {t('author')}: {book.author}
           <br />
           {t('edition')}: {book.edition} | {t('editorial')}: {book.editorial}
+          <br />
+          {t('copies')}: {book.copiesCount || 1}
         </div>
       ),
       value: book._id,
@@ -270,6 +281,9 @@ const CreatePage: React.FC = () => {
         edition: false,
       });
       setCostInput(formattedCost);
+
+      // Add this line to show the number of copies
+      toast.info(`${t('currentCopies')}: ${book.copiesCount || 1}`);
     }
   };
 
@@ -668,6 +682,7 @@ const CreatePage: React.FC = () => {
           )}
         </Segment>
       </div>
+      <ToastContainer />
     </div>
   );
 };

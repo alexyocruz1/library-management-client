@@ -5,7 +5,7 @@
     "homeNavbar": "Inicio",
     "languageNavbar": "Idioma",
     "borrowBookNavbar": "Prestar Libro",
-    "createBookNavbar": "Registrar Libro",
+    "createBookNavbar": "Crear Libro",
     "LogoutNavbar": "Cerrar Sesión",
     "logoutNavbar": "Cerrar Sesión",
     "signupNavbar": "Crear Cuenta",
@@ -87,6 +87,10 @@
     "selectCoverType": "Seleccionar Cubierta",
     "hardCover": "Tapa Dura",
     "softCover": "Tapa Blanda",
+    "filterByCategory": "Filtrar por categoría",
+    "selectCondition": "Seleccionar condición",
+    "enterCategories": "Ingrese categorías",
     "newToUs": "¿Eres nuevo?",
-    "alreadyHaveAccount": "¿Ya tienes una cuenta?"
+    "alreadyHaveAccount": "¿Ya tienes una cuenta?",
+    "currentCopies": "Copias actuales"
 }
