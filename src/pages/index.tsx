@@ -9,27 +9,40 @@ import Image from 'next/image';
 import { Container, Grid, Card, Input, Pagination, Loader, Message, Label, Dropdown, Segment, Header, Icon, DropdownProps, PaginationProps, Button } from 'semantic-ui-react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import BookDetailsModal from '../components/BookDetailsModal';
 
-interface Book {
+// Update the BookCopy interface
+export interface BookCopy {
   _id: string;
   invoiceCode: string;
   code: string;
+  location: string;
+  cost: number;
+  dateAcquired: string;
+  status: string;
+  condition: string;
+  observations: string;
+}
+
+// Update the Book interface
+export interface Book {
+  _id: string;
   title: string;
   author: string;
   editorial: string;
   edition: string;
   categories: string[];
-  coverType: 'hard' | 'soft';
-  location: string;
-  cost: number;
-  dateAcquired: string;
-  status: string;
-  observations: string;
+  coverType: string;
   imageUrl: string;
+  copies: BookCopy[];
   copiesCount: number;
-  condition: 'good' | 'regular' | 'bad' | 'new';
-  groupId: string;
+  status: string;
+  condition: string;
+  location: string; // Add this line
+  // Add any other properties that are in your original Book interface
 }
+
+type ModalBook = Book;
 
 const BookImage: React.FC<{ src: string | null; alt: string }> = ({ src, alt }) => {
   const [imgSrc, setImgSrc] = useState<string | null>(src);
@@ -79,6 +92,8 @@ const IndexPage: React.FC = () => {
   const [categories, setCategories] = useState<string[]>([]);
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     fetchBooks();
@@ -181,6 +196,17 @@ const IndexPage: React.FC = () => {
     );
   };
 
+  const handleBookClick = async (book: Book) => {
+    try {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books/${book._id}`);
+      setSelectedBook(response.data);
+      setIsModalOpen(true);
+    } catch (error) {
+      console.error('Error fetching book details:', error);
+      toast.error(t('errorFetchingBookDetails'));
+    }
+  };
+
   return (
     <div>
       <Navbar isLoggedIn={isLoggedIn} />
@@ -241,7 +267,7 @@ const IndexPage: React.FC = () => {
           <Grid stackable columns={3}>
             {books.map((book) => (
               <Grid.Column key={book._id}>
-                <Card fluid style={{ height: '100%' }}>
+                <Card fluid style={{ height: '100%' }} onClick={() => handleBookClick(book)}>
                   <BookImage src={book.imageUrl || null} alt={book.title} />
                   <Card.Content>
                     <Card.Header style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -284,6 +310,11 @@ const IndexPage: React.FC = () => {
         {renderPagination()}
       </Container>
       <ToastContainer />
+      <BookDetailsModal
+        book={selectedBook}
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 };

@@ -94,5 +94,10 @@
     "alreadyHaveAccount": "¿Ya tienes una cuenta?",
     "currentCopies": "Copias actuales",
     "clearAll": "Limpiar Todo",
-    "copies": "Copias"
+    "copies": "Copias",
+    "close": "Cerrar",
+    "noObservations": "Sin observaciones",
+    "generalInfo": "Información General",
+    "copy": "Copia",
+    "status": "Estado"
 }

@@ -94,5 +94,10 @@
     "createBookNavbar": "Create Book",
     "LogoutNavbar": "Logout",
     "clearAll": "Clear All",
-    "copies": "Copies"
+    "copies": "Copies",
+    "close": "Close",
+    "noObservations": "No observations",
+    "generalInfo": "General Info",
+    "copy": "Copy",
+    "status": "Status"
 }
