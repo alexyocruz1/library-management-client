@@ -6,10 +6,9 @@ import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { GetStaticProps } from 'next';
 import { Dropdown, DropdownProps, Button, Segment, Header, Icon, Grid, Form, InputOnChangeData, TextAreaProps } from 'semantic-ui-react';
-import { toast, ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
-import 'react-toastify/dist/ReactToastify.css';
 
 interface Book {
   _id: string;
@@ -682,7 +681,6 @@ const CreatePage: React.FC = () => {
           )}
         </Segment>
       </div>
-      <ToastContainer />
     </div>
   );
 };
