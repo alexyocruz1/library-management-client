@@ -31,20 +31,40 @@ interface Book {
   groupId: string;
 }
 
-const BookImage: React.FC<{ src: string; alt: string }> = ({ src, alt }) => {
-  const [imgSrc, setImgSrc] = useState(src);
+const BookImage: React.FC<{ src: string | null; alt: string }> = ({ src, alt }) => {
+  const [imgSrc, setImgSrc] = useState<string | null>(src);
+
+  if (!imgSrc) {
+    return (
+      <div style={{
+        width: '100%',
+        height: '300px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#f0f0f0',
+        color: '#888',
+      }}>
+        <Icon name="book" size="huge" />
+      </div>
+    );
+  }
 
   return (
-    <Image
-      src={imgSrc}
-      alt={alt}
-      width={200}
-      height={300}
-      objectFit="cover"
-      onError={() => setImgSrc('/placeholder.png')}
-    />
+    <div style={{ width: '100%', height: '300px', position: 'relative', overflow: 'hidden' }}>
+      <Image
+        src={imgSrc}
+        alt={alt}
+        fill
+        style={{ objectFit: 'cover' }}
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        onError={() => setImgSrc(null)}
+      />
+    </div>
   );
 };
+
+const BOOKS_PER_PAGE = 12;
 
 const IndexPage: React.FC = () => {
   const { t } = useTranslation('common');
@@ -57,12 +77,14 @@ const IndexPage: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [categories, setCategories] = useState<string[]>([]);
+  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   useEffect(() => {
     fetchBooks();
     checkAuthStatus();
     fetchCategories();
-  }, [currentPage, searchTerm, categoryFilter]);
+  }, [currentPage, searchTerm, selectedCategories]);
 
   const checkAuthStatus = () => {
     const token = localStorage.getItem('token');
@@ -73,6 +95,7 @@ const IndexPage: React.FC = () => {
     try {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books/categories`);
       setCategories(response.data.categories);
+      setAvailableCategories(response.data.categories);
     } catch (error) {
       console.error('Error fetching categories:', error);
     }
@@ -83,10 +106,14 @@ const IndexPage: React.FC = () => {
     setError(null);
     try {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books`, {
-        params: { page: currentPage, search: searchTerm, category: categoryFilter },
+        params: { 
+          page: currentPage, 
+          search: searchTerm, 
+          categories: selectedCategories.join(',')
+        },
       });
       setBooks(response.data.books);
-      setTotalPages(response.data.totalPages || 1);
+      setTotalPages(response.data.totalPages);
     } catch (error) {
       setError(t('errorFetchingBooks'));
       toast.error(t('errorFetchingBooks'));
@@ -103,12 +130,55 @@ const IndexPage: React.FC = () => {
   };
 
   const handleCategoryChange = (e: React.SyntheticEvent<HTMLElement, Event>, data: DropdownProps) => {
-    setCategoryFilter(data.value as string | null);
+    const newCategory = data.value as string;
+    if (newCategory && !selectedCategories.includes(newCategory)) {
+      setSelectedCategories([...selectedCategories, newCategory]);
+      setCurrentPage(1);
+    }
+  };
+
+  const removeCategory = (category: string) => {
+    setSelectedCategories(selectedCategories.filter(cat => cat !== category));
+    setAvailableCategories([...availableCategories, category].sort());
     setCurrentPage(1);
   };
 
   const handlePageChange = (e: React.MouseEvent<HTMLAnchorElement>, data: PaginationProps) => {
     setCurrentPage(data.activePage as number);
+  };
+
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+
+    const showEllipsis = totalPages > 7;
+    const pageRange = 2;
+
+    let startPage = Math.max(1, currentPage - pageRange);
+    let endPage = Math.min(totalPages, currentPage + pageRange);
+
+    if (startPage > 1) {
+      startPage += 1;
+    }
+    if (endPage < totalPages) {
+      endPage -= 1;
+    }
+
+    return (
+      <div style={{ marginTop: '2em', display: 'flex', justifyContent: 'center' }}>
+        <Pagination
+          activePage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          firstItem={showEllipsis ? { content: '«', icon: true } : null}
+          lastItem={showEllipsis ? { content: '»', icon: true } : null}
+          prevItem={{ content: '', icon: true }}
+          nextItem={{ content: '›', icon: true }}
+          ellipsisItem={showEllipsis ? { content: '...', icon: true } : null}
+          boundaryRange={1}
+          siblingRange={1}
+        />
+      </div>
+    );
   };
 
   return (
@@ -135,12 +205,21 @@ const IndexPage: React.FC = () => {
                 <Dropdown
                   fluid
                   selection
-                  clearable
+                  search
                   placeholder={t('filterByCategory')}
-                  options={categories.map(cat => ({ key: cat, text: cat, value: cat }))}
+                  options={categories.filter(cat => !selectedCategories.includes(cat)).map(cat => ({ key: cat, text: cat, value: cat }))}
                   onChange={handleCategoryChange}
-                  value={categoryFilter || undefined}
+                  value=""
+                  style={{ marginBottom: '1em' }}
                 />
+                <div>
+                  {selectedCategories.map(category => (
+                    <Label key={category} color="blue" style={{ margin: '0.2em' }}>
+                      {category}
+                      <Icon name="delete" onClick={() => removeCategory(category)} />
+                    </Label>
+                  ))}
+                </div>
               </Grid.Column>
             </Grid.Row>
           </Grid>
@@ -151,13 +230,15 @@ const IndexPage: React.FC = () => {
         ) : error ? (
           <Message negative>{error}</Message>
         ) : books.length > 0 ? (
-          <Grid stackable columns={4}>
+          <Grid stackable columns={3}>
             {books.map((book) => (
               <Grid.Column key={book._id}>
-                <Card fluid>
-                  <BookImage src={book.imageUrl || '/placeholder.png'} alt={book.title} />
+                <Card fluid style={{ height: '100%' }}>
+                  <BookImage src={book.imageUrl || null} alt={book.title} />
                   <Card.Content>
-                    <Card.Header>{book.title}</Card.Header>
+                    <Card.Header style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {book.title}
+                    </Card.Header>
                     <Card.Meta>{book.author}</Card.Meta>
                     <Card.Description>
                       <p><strong>{t('editorial')}:</strong> {book.editorial}</p>
@@ -192,20 +273,7 @@ const IndexPage: React.FC = () => {
           <Message info>{t('nothingOnShelves')}</Message>
         )}
 
-        {totalPages > 1 && (
-          <div style={{ textAlign: 'center', marginTop: '2em' }}>
-            <Pagination
-              activePage={currentPage}
-              onPageChange={handlePageChange}
-              totalPages={totalPages}
-              ellipsisItem={{ content: <Icon name="ellipsis horizontal" />, icon: true }}
-              firstItem={{ content: <Icon name="angle double left" />, icon: true }}
-              lastItem={{ content: <Icon name="angle double right" />, icon: true }}
-              prevItem={{ content: <Icon name="angle left" />, icon: true }}
-              nextItem={{ content: <Icon name="angle right" />, icon: true }}
-            />
-          </div>
-        )}
+        {renderPagination()}
       </Container>
       <ToastContainer />
     </div>
