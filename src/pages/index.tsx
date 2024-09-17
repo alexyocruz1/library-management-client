@@ -6,7 +6,7 @@ import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { GetStaticProps } from 'next';
 import Image from 'next/image';
-import { Container, Grid, Card, Input, Pagination, Loader, Message, Label, Dropdown, Segment, Header, Icon, DropdownProps, PaginationProps } from 'semantic-ui-react';
+import { Container, Grid, Card, Input, Pagination, Loader, Message, Label, Dropdown, Segment, Header, Icon, DropdownProps, PaginationProps, Button } from 'semantic-ui-react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -210,19 +210,27 @@ const IndexPage: React.FC = () => {
                   options={categories.filter(cat => !selectedCategories.includes(cat)).map(cat => ({ key: cat, text: cat, value: cat }))}
                   onChange={handleCategoryChange}
                   value=""
-                  style={{ marginBottom: '1em' }}
                 />
-                <div>
-                  {selectedCategories.map(category => (
-                    <Label key={category} color="blue" style={{ margin: '0.2em' }}>
-                      {category}
-                      <Icon name="delete" onClick={() => removeCategory(category)} />
-                    </Label>
-                  ))}
-                </div>
               </Grid.Column>
             </Grid.Row>
           </Grid>
+          {selectedCategories.length > 0 && (
+            <Segment basic style={{ marginTop: '1em', padding: 0 }}>
+              <Label.Group size="small" style={{ maxHeight: '100px', overflowY: 'auto' }}>
+                {selectedCategories.map(category => (
+                  <Label key={category} color="blue">
+                    {category}
+                    <Icon name="delete" onClick={() => removeCategory(category)} />
+                  </Label>
+                ))}
+              </Label.Group>
+              {selectedCategories.length > 3 && (
+                <Button size="tiny" basic onClick={() => setSelectedCategories([])}>
+                  {t('clearAll')}
+                </Button>
+              )}
+            </Segment>
+          )}
         </Segment>
 
         {loading ? (

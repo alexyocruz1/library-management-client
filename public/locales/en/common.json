@@ -92,5 +92,7 @@
     "selectCondition": "Select condition",
     "enterCategories": "Enter categories",
     "createBookNavbar": "Create Book",
-    "LogoutNavbar": "Logout"
+    "LogoutNavbar": "Logout",
+    "clearAll": "Clear All",
+    "copies": "Copies"
 }

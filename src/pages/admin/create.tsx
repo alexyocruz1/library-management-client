@@ -6,7 +6,8 @@ import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { GetStaticProps } from 'next';
 import { Dropdown, DropdownProps, Button, Segment, Header, Icon, Grid, Form, InputOnChangeData, TextAreaProps } from 'semantic-ui-react';
-import { toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 
@@ -173,7 +174,7 @@ const CreatePage: React.FC = () => {
     const emptyFields = requiredFields.filter(field => !formData[field]);
 
     if (emptyFields.length > 0) {
-      toast.error(t('fillAllRequiredFields'));
+      toast(t('fillAllRequiredFields'), { type: 'error' });
       return;
     }
 
@@ -186,7 +187,7 @@ const CreatePage: React.FC = () => {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books`, bookData);
       console.log('API response:', response);
       if (response.status === 201) {
-        toast.success(t('bookCreatedSuccess'));
+        toast(t('bookCreatedSuccess'), { type: 'success' });
         setFormData({
           invoiceCode: '',
           code: '',
@@ -211,7 +212,7 @@ const CreatePage: React.FC = () => {
       }
     } catch (error) {
       console.error('Error creating book:', error);
-      toast.error(t('bookCreationError'));
+      toast(t('bookCreationError'), { type: 'error' });
     }
   };
 
@@ -222,7 +223,7 @@ const CreatePage: React.FC = () => {
       const response = await axios.get(url);
       setSearchResults(response.data.books);
     } catch (error) {
-      toast.error(t('errorSearchingBooks'));
+      toast(t('errorSearchingBooks'), { type: 'error' });
     }
   };
 
@@ -282,14 +283,14 @@ const CreatePage: React.FC = () => {
       setCostInput(formattedCost);
 
       // Add this line to show the number of copies
-      toast.info(`${t('currentCopies')}: ${book.copiesCount || 1}`);
+      toast(`${t('currentCopies')}: ${book.copiesCount || 1}`, { type: 'info' });
     }
   };
 
   const handleCopyBook = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedBook) {
-      toast.error(t('noBookSelected'));
+      toast(t('noBookSelected'), { type: 'error' });
       return;
     }
 
@@ -307,7 +308,7 @@ const CreatePage: React.FC = () => {
       });
       console.log('API response:', response);
       if (response.status === 201) {
-        toast.success(t('bookCopiedSuccess'));
+        toast(t('bookCopiedSuccess'), { type: 'success' });
         setSelectedBook({
           ...selectedBook,
           copiesCount: (selectedBook.copiesCount || 0) + 1
@@ -320,7 +321,7 @@ const CreatePage: React.FC = () => {
       }
     } catch (error) {
       console.error('Error copying book:', error);
-      toast.error(t('bookCopyError'));
+      toast(t('bookCopyError'), { type: 'error' });
     }
   };
 
@@ -681,6 +682,17 @@ const CreatePage: React.FC = () => {
           )}
         </Segment>
       </div>
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </div>
   );
 };

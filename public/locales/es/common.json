@@ -92,5 +92,7 @@
     "enterCategories": "Ingrese categorías",
     "newToUs": "¿Eres nuevo?",
     "alreadyHaveAccount": "¿Ya tienes una cuenta?",
-    "currentCopies": "Copias actuales"
+    "currentCopies": "Copias actuales",
+    "clearAll": "Limpiar Todo",
+    "copies": "Copias"
 }

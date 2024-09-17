@@ -6,10 +6,9 @@ import { appWithTranslation } from 'next-i18next';
 import Head from 'next/head';
 import { useEffect } from 'react';
 import 'react-toastify/dist/ReactToastify.css';
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
 import React from 'react';
 import { useTranslation } from 'next-i18next';
-import { toast } from 'react-toastify';
 
 declare global {
   interface Window {
@@ -22,8 +21,6 @@ function MyApp({ Component, pageProps }: AppProps) {
   const { t } = useTranslation('common');
 
   useEffect(() => {
-    toast.dismiss();
-
     const loadDependencies = async () => {
       if (typeof window !== 'undefined') {
         const jQuery = await import('jquery');
@@ -37,16 +34,20 @@ function MyApp({ Component, pageProps }: AppProps) {
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
       navigator.serviceWorker.controller.postMessage('CLEAR_CACHE');
     }
+
+    // Clear all existing toasts when the app mounts
+    toast.dismiss();
   }, []);
 
   return (
     <>
       <Head>
         <title>{t('appTitle')}</title>
+        <link rel="icon" href="/icons/bookshelf.ico" />
+        <link rel="apple-touch-icon" href="/icons/book-bubbles-16.png" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#317EFB" />
         <meta name="description" content="This is a PWA version of my app" />
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
       </Head>
       <Component {...pageProps} />
       <ToastContainer
@@ -59,6 +60,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         pauseOnFocusLoss
         draggable
         pauseOnHover
+        limit={3}
       />
     </>
   );
