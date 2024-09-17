@@ -10,6 +10,8 @@ import { Container, Grid, Card, Input, Pagination, Loader, Message, Label, Dropd
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import BookDetailsModal from '../components/BookDetailsModal';
+import styled from 'styled-components';
+import { colors } from '../styles/colors';
 
 // Update the BookCopy interface
 export interface BookCopy {
@@ -78,6 +80,39 @@ const BookImage: React.FC<{ src: string | null; alt: string }> = ({ src, alt }) 
 };
 
 const BOOKS_PER_PAGE = 12;
+
+// Styled components for a more playful look
+const PlayfulContainer = styled(Container)`
+  background-color: ${colors.background}F0; // F0 adds 94% opacity
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  margin-top: 2em;
+`;
+
+const PlayfulHeader = styled(Header)`
+  font-family: 'KidsFont', sans-serif !important;
+  color: ${colors.primary} !important;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+`;
+
+const PlayfulCard = styled(Card)`
+  border-radius: 15px !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+  transition: transform 0.3s ease-in-out !important;
+  background-color: white !important;
+
+  &:hover {
+    transform: scale(1.05);
+  }
+`;
+
+const PlayfulButton = styled(Button)`
+  background-color: ${colors.secondary} !important;
+  color: white !important;
+  border-radius: 20px !important;
+  font-family: 'KidsFont', sans-serif !important;
+`;
 
 const IndexPage: React.FC = () => {
   const { t } = useTranslation('common');
@@ -208,23 +243,25 @@ const IndexPage: React.FC = () => {
   };
 
   return (
-    <div>
+    <div style={{ minHeight: '100vh', paddingBottom: '2em' }}>
       <Navbar isLoggedIn={isLoggedIn} />
-      <Container style={{ marginTop: '2em' }}>
-        <Header as="h1" textAlign="center">
-          <Icon name="book" />
+      <PlayfulContainer style={{ marginTop: '2em' }}>
+        <PlayfulHeader as="h1" textAlign="center">
+          <Icon name="book" style={{ color: colors.primary }} />
           <Header.Content>{t('appTitle')}</Header.Content>
-        </Header>
-        <Segment raised>
+        </PlayfulHeader>
+        <Segment raised style={{ backgroundColor: 'white', borderColor: colors.primary, borderRadius: '15px' }}>
           <Grid stackable>
             <Grid.Row>
               <Grid.Column width={10}>
                 <Input
                   fluid
                   icon="search"
+                  iconPosition="left"
                   placeholder={t('searchBooks')}
                   value={searchTerm}
                   onChange={handleSearchChange}
+                  style={{ borderColor: colors.primary, borderRadius: '20px' }}
                 />
               </Grid.Column>
               <Grid.Column width={6}>
@@ -236,6 +273,7 @@ const IndexPage: React.FC = () => {
                   options={categories.filter(cat => !selectedCategories.includes(cat)).map(cat => ({ key: cat, text: cat, value: cat }))}
                   onChange={handleCategoryChange}
                   value=""
+                  style={{ borderColor: colors.primary, borderRadius: '20px' }}
                 />
               </Grid.Column>
             </Grid.Row>
@@ -244,16 +282,16 @@ const IndexPage: React.FC = () => {
             <Segment basic style={{ marginTop: '1em', padding: 0 }}>
               <Label.Group size="small" style={{ maxHeight: '100px', overflowY: 'auto' }}>
                 {selectedCategories.map(category => (
-                  <Label key={category} color="blue">
+                  <Label key={category} color="pink" style={{ borderRadius: '15px' }}>
                     {category}
                     <Icon name="delete" onClick={() => removeCategory(category)} />
                   </Label>
                 ))}
               </Label.Group>
               {selectedCategories.length > 3 && (
-                <Button size="tiny" basic onClick={() => setSelectedCategories([])}>
+                <PlayfulButton size="tiny" onClick={() => setSelectedCategories([])}>
                   {t('clearAll')}
-                </Button>
+                </PlayfulButton>
               )}
             </Segment>
           )}
@@ -267,39 +305,39 @@ const IndexPage: React.FC = () => {
           <Grid stackable columns={3}>
             {books.map((book) => (
               <Grid.Column key={book._id}>
-                <Card fluid style={{ height: '100%' }} onClick={() => handleBookClick(book)}>
+                <PlayfulCard fluid onClick={() => handleBookClick(book)}>
                   <BookImage src={book.imageUrl || null} alt={book.title} />
                   <Card.Content>
-                    <Card.Header style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <Card.Header style={{ color: colors.primary, fontFamily: 'KidsFont, sans-serif' }}>
                       {book.title}
                     </Card.Header>
-                    <Card.Meta>{book.author}</Card.Meta>
-                    <Card.Description>
-                      <p><strong>{t('editorial')}:</strong> {book.editorial}</p>
-                      <p><strong>{t('edition')}:</strong> {book.edition}</p>
-                      <p><strong>{t('location')}:</strong> {book.location}</p>
+                    <Card.Meta style={{ color: colors.lightText }}>{book.author}</Card.Meta>
+                    <Card.Description style={{ color: colors.text }}>
+                      <p><strong style={{ color: colors.secondary }}>{t('editorial')}:</strong> {book.editorial}</p>
+                      <p><strong style={{ color: colors.secondary }}>{t('edition')}:</strong> {book.edition}</p>
+                      <p><strong style={{ color: colors.secondary }}>{t('location')}:</strong> {book.location}</p>
                     </Card.Description>
                   </Card.Content>
                   <Card.Content extra>
                     <Label.Group>
                       {book.categories.map((category, index) => (
-                        <Label key={index} basic>{category}</Label>
+                        <Label key={index} color="pink" style={{ borderRadius: '15px', backgroundColor: colors.accent, color: colors.text }}>{category}</Label>
                       ))}
                     </Label.Group>
                   </Card.Content>
                   <Card.Content extra>
-                    <Icon name='copy' />
+                    <Icon name='copy' style={{ color: colors.primary }} />
                     {t('copiesCount', { count: book.copiesCount })}
                   </Card.Content>
                   <Card.Content extra>
-                    <Label color={book.status === 'available' ? 'green' : 'red'}>
+                    <Label color={book.status === 'available' ? 'green' : 'red'} style={{ borderRadius: '15px' }}>
                       {t(book.status)}
                     </Label>
-                    <Label color={book.condition === 'new' ? 'blue' : 'grey'}>
+                    <Label color={book.condition === 'new' ? 'blue' : 'grey'} style={{ borderRadius: '15px' }}>
                       {t(book.condition)}
                     </Label>
                   </Card.Content>
-                </Card>
+                </PlayfulCard>
               </Grid.Column>
             ))}
           </Grid>
@@ -308,7 +346,7 @@ const IndexPage: React.FC = () => {
         )}
 
         {renderPagination()}
-      </Container>
+      </PlayfulContainer>
       <ToastContainer />
       <BookDetailsModal
         book={selectedBook}

@@ -1,6 +1,7 @@
 // pages/_app.tsx
 import 'fomantic-ui-css/semantic.min.css';
 import '../styles/globals.css';
+import '../styles/fonts.css';
 import type { AppProps } from 'next/app';
 import { appWithTranslation } from 'next-i18next';
 import Head from 'next/head';
@@ -9,6 +10,30 @@ import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer, toast } from 'react-toastify';
 import React from 'react';
 import { useTranslation } from 'next-i18next';
+import { createGlobalStyle } from 'styled-components';
+import { tokens } from '../styles/tokens';
+import { colors } from '../styles/colors';
+
+const GlobalStyle = createGlobalStyle`
+  html {
+    font-size: 16px;
+  }
+
+  body {
+    font-family: 'KidsFont', sans-serif !important;
+    font-size: ${tokens.fontSize.base};
+    background-image: url('/images/kids-background.jpg');
+    background-size: cover;
+    background-attachment: fixed;
+    background-position: center;
+    min-height: 100vh;
+  }
+
+  button, input, textarea, select, .ui.pagination.menu, .ui.pagination.menu .item {
+    font-family: 'KidsFont', sans-serif !important;
+    font-size: ${tokens.fontSize.base};
+  }
+`;
 
 declare global {
   interface Window {
@@ -41,6 +66,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   return (
     <>
+      <GlobalStyle />
       <Head>
         <title>{t('appTitle')}</title>
         <link rel="icon" href="/icons/bookshelf.ico" />
