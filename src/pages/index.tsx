@@ -114,6 +114,31 @@ const PlayfulButton = styled(Button)`
   font-family: 'KidsFont', sans-serif !important;
 `;
 
+const StyledPagination = styled(Pagination)`
+  &.ui.pagination.menu {
+    font-family: 'KidsFont', sans-serif !important;
+    border-radius: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    
+    .item {
+      font-family: 'KidsFont', sans-serif !important;
+      color: ${props => props.theme.colors.text};
+      background-color: ${props => props.theme.colors.background};
+      border-radius: 50%;
+      margin: 0 2px;
+      
+      &:hover {
+        background-color: ${props => props.theme.colors.accent};
+      }
+      
+      &.active {
+        background-color: ${props => props.theme.colors.primary};
+        color: white;
+      }
+    }
+  }
+`;
+
 const IndexPage: React.FC = () => {
   const { t } = useTranslation('common');
   const [books, setBooks] = useState<Book[]>([]);
@@ -193,39 +218,36 @@ const IndexPage: React.FC = () => {
     setCurrentPage(1);
   };
 
-  const handlePageChange = (e: React.MouseEvent<HTMLAnchorElement>, data: PaginationProps) => {
+  const handlePageChange = (event: React.MouseEvent<HTMLAnchorElement>, data: PaginationProps) => {
     setCurrentPage(data.activePage as number);
   };
 
   const renderPagination = () => {
     if (totalPages <= 1) return null;
 
-    const showEllipsis = totalPages > 7;
-    const pageRange = 2;
-
-    let startPage = Math.max(1, currentPage - pageRange);
-    let endPage = Math.min(totalPages, currentPage + pageRange);
-
-    if (startPage > 1) {
-      startPage += 1;
-    }
-    if (endPage < totalPages) {
-      endPage -= 1;
-    }
-
     return (
       <div style={{ marginTop: '2em', display: 'flex', justifyContent: 'center' }}>
-        <Pagination
+        <StyledPagination
           activePage={currentPage}
           totalPages={totalPages}
           onPageChange={handlePageChange}
-          firstItem={showEllipsis ? { content: '«', icon: true } : null}
-          lastItem={showEllipsis ? { content: '»', icon: true } : null}
-          prevItem={{ content: '', icon: true }}
-          nextItem={{ content: '›', icon: true }}
-          ellipsisItem={showEllipsis ? { content: '...', icon: true } : null}
-          boundaryRange={1}
-          siblingRange={1}
+          firstItem={{
+            content: <Icon name='angle double left' />,
+            icon: true
+          }}
+          lastItem={{
+            content: <Icon name='angle double right' />,
+            icon: true
+          }}
+          prevItem={{
+            content: <Icon name='angle left' />,
+            icon: true
+          }}
+          nextItem={{
+            content: <Icon name='angle right' />,
+            icon: true
+          }}
+          ellipsisItem={{ content: <Icon name='ellipsis horizontal' />, icon: true }}
         />
       </div>
     );
