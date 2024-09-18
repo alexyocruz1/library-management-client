@@ -9,7 +9,35 @@ import Head from 'next/head';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Link from 'next/link';
-import { Form, Button, Message, Segment, Grid, Header } from 'semantic-ui-react';
+import { Form, Button, Message, Segment, Grid, Header, Icon } from 'semantic-ui-react';
+import styled from 'styled-components';
+import { colors } from '../styles/colors';
+
+const PlayfulContainer = styled.div`
+  background-color: ${colors.background}F0;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  margin-top: 2em;
+`;
+
+const PlayfulHeader = styled(Header)`
+  font-family: 'KidsFont', sans-serif !important;
+  color: ${colors.primary} !important;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+`;
+
+const PlayfulButton = styled(Button)`
+  background-color: ${colors.secondary} !important;
+  color: white !important;
+  border-radius: 20px !important;
+  font-family: 'KidsFont', sans-serif !important;
+`;
+
+const PlayfulSegment = styled(Segment)`
+  border-radius: 15px !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+`;
 
 const LoginPage: React.FC = () => {
   const { t } = useTranslation('common');
@@ -69,40 +97,43 @@ const LoginPage: React.FC = () => {
       <Navbar isLoggedIn={false} />
       <Grid textAlign='center' style={{ height: '80vh' }} verticalAlign='middle'>
         <Grid.Column style={{ maxWidth: 450 }}>
-          <Header as='h2' color='teal' textAlign='center'>
-            {t('login')}
-          </Header>
-          <Form size='large' onSubmit={handleSubmit} loading={loading}>
-            <Segment stacked>
-              <Form.Input
-                fluid
-                icon='user'
-                iconPosition='left'
-                placeholder={t('email')}
-                name='email'
-                value={formData.email}
-                onChange={handleChange}
-                error={isFieldEmpty('email')}
-              />
-              <Form.Input
-                fluid
-                icon='lock'
-                iconPosition='left'
-                placeholder={t('password')}
-                type='password'
-                name='password'
-                value={formData.password}
-                onChange={handleChange}
-                error={isFieldEmpty('password')}
-              />
-              <Button color='teal' fluid size='large' type='submit'>
-                {t('login')}
-              </Button>
-            </Segment>
-          </Form>
-          <Message>
-            {t('newToUs')} <Link href="/signup">{t('signUp')}</Link>
-          </Message>
+          <PlayfulContainer>
+            <PlayfulHeader as='h2' textAlign='center'>
+              <Icon name="user circle" style={{ color: colors.primary }} />
+              {t('login')}
+            </PlayfulHeader>
+            <Form size='large' onSubmit={handleSubmit} loading={loading}>
+              <PlayfulSegment stacked>
+                <Form.Input
+                  fluid
+                  icon='user'
+                  iconPosition='left'
+                  placeholder={t('email')}
+                  name='email'
+                  value={formData.email}
+                  onChange={handleChange}
+                  error={isFieldEmpty('email')}
+                />
+                <Form.Input
+                  fluid
+                  icon='lock'
+                  iconPosition='left'
+                  placeholder={t('password')}
+                  type='password'
+                  name='password'
+                  value={formData.password}
+                  onChange={handleChange}
+                  error={isFieldEmpty('password')}
+                />
+                <PlayfulButton fluid size='large' type='submit'>
+                  {t('login')}
+                </PlayfulButton>
+              </PlayfulSegment>
+            </Form>
+            <Message>
+              {t('newToUs')} <Link href="/signup">{t('signUp')}</Link>
+            </Message>
+          </PlayfulContainer>
         </Grid.Column>
       </Grid>
       <ToastContainer />

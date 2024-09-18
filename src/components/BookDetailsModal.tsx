@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { Modal, Button, List, Grid, Icon, Label, Segment, Tab, Pagination, Header } from 'semantic-ui-react';
 import { useTranslation } from 'next-i18next';
 import Image from 'next/image';
+import styled from 'styled-components';
+import { colors } from '../styles/colors';
+import { tokens } from '../styles/tokens';
 
 const BookImage: React.FC<{ src: string | null; alt: string }> = ({ src, alt }) => {
   const [imgSrc, setImgSrc] = React.useState<string | null>(src);
@@ -65,6 +68,35 @@ interface BookDetailsModalProps {
   open: boolean;
   onClose: () => void;
 }
+
+const PlayfulModal = styled(Modal)`
+  &.ui.modal {
+    border-radius: 20px;
+    overflow: hidden;
+  }
+`;
+
+const PlayfulHeader = styled(Modal.Header)`
+  background-color: ${colors.primary} !important;
+  color: white !important;
+  font-family: 'KidsFont', sans-serif !important;
+`;
+
+const PlayfulContent = styled(Modal.Content)`
+  background-color: ${colors.background}F0 !important;
+`;
+
+const PlayfulSegment = styled(Segment)`
+  border-radius: 15px !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+`;
+
+const PlayfulButton = styled(Button)`
+  background-color: ${colors.secondary} !important;
+  color: white !important;
+  border-radius: 20px !important;
+  font-family: 'KidsFont', sans-serif !important;
+`;
 
 const BookDetailsModal: React.FC<BookDetailsModalProps> = ({ book, open, onClose }) => {
   const { t } = useTranslation('common');
@@ -194,10 +226,10 @@ const BookDetailsModal: React.FC<BookDetailsModalProps> = ({ book, open, onClose
       render: () => (
         <Tab.Pane>
           {book.copies.slice((currentCopyPage - 1) * copiesPerPage, currentCopyPage * copiesPerPage).map((copy, index) => (
-            <Segment key={copy._id}>
+            <PlayfulSegment key={copy._id}>
               <Header as="h4">{t('copy')} {(currentCopyPage - 1) * copiesPerPage + index + 1}</Header>
               {renderCopyDetails(copy)}
-            </Segment>
+            </PlayfulSegment>
           ))}
           <Pagination
             activePage={currentCopyPage}
@@ -210,27 +242,27 @@ const BookDetailsModal: React.FC<BookDetailsModalProps> = ({ book, open, onClose
   ];
 
   return (
-    <Modal open={open} onClose={onClose} size="fullscreen">
-      <Modal.Header>
+    <PlayfulModal open={open} onClose={onClose} size="fullscreen">
+      <PlayfulHeader>
         <Icon name="book" /> {book.title}
-      </Modal.Header>
-      <Modal.Content scrolling style={{ height: 'calc(100vh - 120px)', padding: '2rem' }}>
+      </PlayfulHeader>
+      <PlayfulContent scrolling style={{ height: 'calc(100vh - 120px)', padding: '2rem' }}>
         <Grid stackable>
           <Grid.Row>
             <Grid.Column width={6}>
-              <Segment>
+              <PlayfulSegment>
                 <div style={{ height: '50vh', position: 'relative' }}>
                   <BookImage src={book.imageUrl || null} alt={book.title} />
                 </div>
-              </Segment>
-              <Segment>
+              </PlayfulSegment>
+              <PlayfulSegment>
                 <Label.Group size="large">
                   <Label basic>
                     <Icon name="copy" />
                     {t('copiesCount', { count: Array.isArray(book.copies) ? book.copies.length : 0 })}
                   </Label>
                 </Label.Group>
-              </Segment>
+              </PlayfulSegment>
             </Grid.Column>
             <Grid.Column width={10}>
               <Tab 
@@ -241,13 +273,13 @@ const BookDetailsModal: React.FC<BookDetailsModalProps> = ({ book, open, onClose
             </Grid.Column>
           </Grid.Row>
         </Grid>
-      </Modal.Content>
+      </PlayfulContent>
       <Modal.Actions>
-        <Button color='blue' onClick={onClose}>
+        <PlayfulButton onClick={onClose}>
           <Icon name='close' /> {t('close')}
-        </Button>
+        </PlayfulButton>
       </Modal.Actions>
-    </Modal>
+    </PlayfulModal>
   );
 };
 

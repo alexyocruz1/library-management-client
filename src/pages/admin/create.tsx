@@ -10,6 +10,9 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
+import styled from 'styled-components';
+import { colors } from '../../styles/colors';
+import { tokens } from '../../styles/tokens';
 
 interface Book {
   _id: string;
@@ -53,6 +56,32 @@ const CreatableSelect = dynamic(
   () => import('react-select/creatable').then((mod) => mod.default),
   { ssr: false }
 );
+
+const PlayfulContainer = styled.div`
+  background-color: ${colors.background}F0;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  margin-top: 2em;
+`;
+
+const PlayfulHeader = styled.h2`
+  font-family: 'KidsFont', sans-serif !important;
+  color: ${colors.primary} !important;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+`;
+
+const PlayfulButton = styled(Button)`
+  background-color: ${colors.secondary} !important;
+  color: white !important;
+  border-radius: 20px !important;
+  font-family: 'KidsFont', sans-serif !important;
+`;
+
+const PlayfulSegment = styled(Segment)`
+  border-radius: 15px !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+`;
 
 const CreatePage: React.FC = () => {
   const { t } = useTranslation('common');
@@ -469,9 +498,9 @@ const CreatePage: React.FC = () => {
             </div>
           )}
         </div>
-        <button className="ui primary button" type="submit" style={{ marginTop: '1rem' }}>
+        <PlayfulButton className="ui primary button" type="submit" style={{ marginTop: '1rem' }}>
           {t('copySelectedBook')}
-        </button>
+        </PlayfulButton>
       </form>
     );
   };
@@ -479,10 +508,10 @@ const CreatePage: React.FC = () => {
   return (
     <div>
       <Navbar isLoggedIn={true} />
-      <div className="ui container" style={{ margin: '2rem auto', padding: '2rem', maxWidth: '800px' }}>
-        <h2>{t('createBook')}</h2>
+      <PlayfulContainer>
+        <PlayfulHeader>{t('createBook')}</PlayfulHeader>
         
-        <Segment>
+        <PlayfulSegment>
           <Header as='h3'>
             <Icon name={isSearchMode ? 'search' : 'book'} />
             <Header.Content>
@@ -490,9 +519,9 @@ const CreatePage: React.FC = () => {
             </Header.Content>
           </Header>
           
-          <Button onClick={toggleMode} style={{ marginBottom: '1rem' }}>
+          <PlayfulButton onClick={toggleMode} style={{ marginBottom: '1rem' }}>
             {isSearchMode ? t('createNewBook') : t('searchExistingBooks')}
-          </Button>
+          </PlayfulButton>
 
           {isSearchMode ? (
             <>
@@ -504,7 +533,7 @@ const CreatePage: React.FC = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                 />
-                <Button icon='search' onClick={handleSearch} />
+                <PlayfulButton icon='search' onClick={handleSearch} />
               </div>
 
               {searchResults.length > 0 && (
@@ -675,13 +704,13 @@ const CreatePage: React.FC = () => {
                   onChange={handleChange}
                 />
               )}
-              <Button primary type="submit" style={{ marginTop: '1rem' }} disabled={isSearchMode}>
+              <PlayfulButton primary type="submit" style={{ marginTop: '1rem' }} disabled={isSearchMode}>
                 {t('submit')}
-              </Button>
+              </PlayfulButton>
             </Form>
           )}
-        </Segment>
-      </div>
+        </PlayfulSegment>
+      </PlayfulContainer>
       <ToastContainer
         position="top-right"
         autoClose={5000}
