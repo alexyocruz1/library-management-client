@@ -134,7 +134,7 @@ const BookDetailsModal: React.FC<BookDetailsModalProps> = ({ book, open, onClose
         <List.Content>
           <List.Header>{t('cost')}</List.Header>
           <List.Description>
-            ${typeof copy.cost === 'number' ? copy.cost.toFixed(2) : copy.cost}
+            L. {typeof copy.cost === 'number' ? copy.cost.toFixed(2) : copy.cost}
           </List.Description>
         </List.Content>
       </List.Item>
