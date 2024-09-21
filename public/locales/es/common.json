@@ -6,7 +6,6 @@
     "languageNavbar": "Idioma",
     "borrowBookNavbar": "Prestar Libro",
     "createBookNavbar": "Crear Libro",
-    "LogoutNavbar": "Cerrar Sesión",
     "logoutNavbar": "Cerrar Sesión",
     "signupNavbar": "Crear Cuenta",
     "signUp": "Registrarse",
@@ -99,5 +98,6 @@
     "noObservations": "Sin observaciones",
     "generalInfo": "Información General",
     "copy": "Copia",
-    "status": "Estado"
+    "status": "Estado",
+    "selectCompany": "Seleccionar Empresa"
 }

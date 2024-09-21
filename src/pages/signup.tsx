@@ -9,7 +9,7 @@ import Head from 'next/head';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Link from 'next/link';
-import { Form, Button, Message, Segment, Grid, Header, Icon } from 'semantic-ui-react';
+import { Form, Button, Message, Segment, Grid, Header, Icon, Dropdown, DropdownProps, InputOnChangeData } from 'semantic-ui-react';
 import styled from 'styled-components';
 import { colors } from '../styles/colors';
 
@@ -39,6 +39,12 @@ const PlayfulSegment = styled(Segment)`
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
 `;
 
+const companyOptions = [
+  { key: 'haye', text: 'Hogar de Amor y Esperanza (HAYE)', value: 'HAYE' },
+  { key: 'itsm', text: 'Instituto Tecnico Santa Maria (ITSM)', value: 'ITSM' },
+  { key: 'eahay', text: 'Escuela Agricula Hogar de Amor y Esperanza (EAHAYE)', value: 'EAHAYE' },
+];
+
 const SignUpPage: React.FC = () => {
   const { t } = useTranslation('common');
   const router = useRouter();
@@ -47,12 +53,18 @@ const SignUpPage: React.FC = () => {
     email: '',
     password: '',
     confirmPassword: '',
+    company: '', // New field for company
   });
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement> | React.SyntheticEvent<HTMLElement, Event>,
+    data?: DropdownProps | InputOnChangeData
+  ) => {
+    const name = (data && 'name' in data) ? data.name : (e.target as HTMLInputElement).name;
+    const value = (data && 'value' in data) ? data.value : (e.target as HTMLInputElement).value;
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -60,7 +72,7 @@ const SignUpPage: React.FC = () => {
     setSubmitted(true);
     setLoading(true);
 
-    if (!formData.username || !formData.email || !formData.password || !formData.confirmPassword) {
+    if (!formData.username || !formData.email || !formData.password || !formData.confirmPassword || !formData.company) {
       toast.error(t('fillAllRequiredFields'));
       setLoading(false);
       return;
@@ -77,6 +89,7 @@ const SignUpPage: React.FC = () => {
         username: formData.username,
         email: formData.email,
         password: formData.password,
+        company: formData.company, // Include company in signup
       });
 
       if (response.data.success) {
@@ -154,7 +167,17 @@ const SignUpPage: React.FC = () => {
                   onChange={handleChange}
                   error={isFieldEmpty('confirmPassword')}
                 />
-                <PlayfulButton fluid size='large' type='submit'>
+                <Dropdown
+                  placeholder={t('selectCompany')}
+                  fluid
+                  selection
+                  options={companyOptions}
+                  name='company'
+                  onChange={handleChange}
+                  error={isFieldEmpty('company')}
+                  style={{ marginBottom: '1em' }} // Add margin here
+                />
+                <PlayfulButton fluid size='large' type='submit' style={{ marginTop: '1em' }}>
                   {t('signUp')}
                 </PlayfulButton>
               </PlayfulSegment>
