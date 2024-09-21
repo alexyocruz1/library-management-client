@@ -13,6 +13,7 @@ import Image from 'next/image';
 import styled from 'styled-components';
 import { colors } from '../../styles/colors';
 import { tokens } from '../../styles/tokens';
+import { jwtDecode } from 'jwt-decode'; // Change to named import
 
 interface Book {
   _id: string;
@@ -114,12 +115,18 @@ const CreatePage: React.FC = () => {
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [isEditableField, setIsEditableField] = useState<{[key: string]: boolean}>({});
   const [costInput, setCostInput] = useState('');
+  const [company, setCompany] = useState<string | null>(null);
 
   const selectId = 'category-select';
 
   useEffect(() => {
     fetchCategories();
     setIsMounted(true);
+    const token = localStorage.getItem('token');
+    if (token) {
+      const decodedToken = jwtDecode(token) as { company: string }; // Specify the type for decodedToken
+      setCompany(decodedToken.company);
+    }
   }, []);
 
   const fetchCategories = async () => {
@@ -211,6 +218,7 @@ const CreatePage: React.FC = () => {
       const bookData = {
         ...formData,
         categories: selectedCategories,
+        company, // Include the user's company
       };
       console.log('Submitting book data:', bookData);
       const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books`, bookData);

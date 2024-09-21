@@ -12,6 +12,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import BookDetailsModal from '../components/BookDetailsModal';
 import styled from 'styled-components';
 import { colors } from '../styles/colors';
+import { jwtDecode } from 'jwt-decode'; // Change to named import
 
 // Update the BookCopy interface
 export interface BookCopy {
@@ -154,8 +155,14 @@ const IndexPage: React.FC = () => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [userCompany, setUserCompany] = useState<string | null>(null);
 
   useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      const decodedToken = jwtDecode(token) as { company: string }; // Specify the type for decodedToken
+      setUserCompany(decodedToken.company); // Set the user's company
+    }
     fetchBooks();
     checkAuthStatus();
     fetchCategories();
@@ -184,7 +191,8 @@ const IndexPage: React.FC = () => {
         params: { 
           page: currentPage, 
           search: searchTerm, 
-          categories: selectedCategories.join(',')
+          categories: selectedCategories.join(','),
+          company: userCompany // Pass the user's company
         },
       });
       setBooks(response.data.books);
