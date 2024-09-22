@@ -6,7 +6,7 @@ import { useRouter } from 'next/router';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
 import Head from 'next/head';
-import { toast, ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Link from 'next/link';
 import { Form, Button, Message, Segment, Grid, Header, Icon } from 'semantic-ui-react';
@@ -136,7 +136,6 @@ const LoginPage: React.FC = () => {
           </PlayfulContainer>
         </Grid.Column>
       </Grid>
-      <ToastContainer />
     </>
   );
 };
