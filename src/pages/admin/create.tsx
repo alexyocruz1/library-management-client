@@ -124,7 +124,7 @@ const CreatePage: React.FC = () => {
     setIsMounted(true);
     const token = localStorage.getItem('token');
     if (token) {
-      const decodedToken = jwtDecode(token) as { company: string }; // Specify the type for decodedToken
+      const decodedToken = jwtDecode(token) as { company: string };
       setCompany(decodedToken.company);
     }
   }, []);

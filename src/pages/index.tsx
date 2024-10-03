@@ -13,6 +13,7 @@ import BookDetailsModal from '../components/BookDetailsModal';
 import styled from 'styled-components';
 import { colors } from '../styles/colors';
 import { jwtDecode } from 'jwt-decode'; // Change to named import
+import { useRouter } from 'next/router';
 
 // Update the BookCopy interface
 export interface BookCopy {
@@ -42,6 +43,7 @@ export interface Book {
   status: string;
   condition: string;
   location: string; // Add this line
+  company: string; // Add this line
   // Add any other properties that are in your original Book interface
 }
 
@@ -156,17 +158,22 @@ const IndexPage: React.FC = () => {
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [userCompany, setUserCompany] = useState<string | null>(null);
+  const [companies, setCompanies] = useState<string[]>([]);
+  const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      const decodedToken = jwtDecode(token) as { company: string }; // Specify the type for decodedToken
-      setUserCompany(decodedToken.company); // Set the user's company
+      const decodedToken = jwtDecode(token) as { company: string };
+      setUserCompany(decodedToken.company);
+      setSelectedCompany(decodedToken.company);
     }
     fetchBooks();
     checkAuthStatus();
     fetchCategories();
-  }, [currentPage, searchTerm, selectedCategories]);
+    fetchCompanies();
+  }, [currentPage, searchTerm, selectedCategories, selectedCompany]);
 
   const checkAuthStatus = () => {
     const token = localStorage.getItem('token');
@@ -183,6 +190,15 @@ const IndexPage: React.FC = () => {
     }
   };
 
+  const fetchCompanies = async () => {
+    try {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books/companies`);
+      setCompanies(response.data.companies);
+    } catch (error) {
+      console.error('Error fetching companies:', error);
+    }
+  };
+
   const fetchBooks = async () => {
     setLoading(true);
     setError(null);
@@ -192,7 +208,7 @@ const IndexPage: React.FC = () => {
           page: currentPage, 
           search: searchTerm, 
           categories: selectedCategories.join(','),
-          company: userCompany // Pass the user's company
+          company: selectedCompany || userCompany
         },
       });
       setBooks(response.data.books);
@@ -272,6 +288,11 @@ const IndexPage: React.FC = () => {
     }
   };
 
+  const handleCompanyChange = (e: React.SyntheticEvent<HTMLElement, Event>, data: DropdownProps) => {
+    setSelectedCompany(data.value as string);
+    setCurrentPage(1);
+  };
+
   return (
     <div style={{ minHeight: '100vh', paddingBottom: '2em' }}>
       <Navbar isLoggedIn={isLoggedIn} />
@@ -283,7 +304,7 @@ const IndexPage: React.FC = () => {
         <Segment raised style={{ backgroundColor: 'white', borderColor: colors.primary, borderRadius: '15px' }}>
           <Grid stackable>
             <Grid.Row>
-              <Grid.Column width={10}>
+              <Grid.Column width={6}>
                 <Input
                   fluid
                   icon="search"
@@ -294,7 +315,7 @@ const IndexPage: React.FC = () => {
                   style={{ borderColor: colors.primary, borderRadius: '20px' }}
                 />
               </Grid.Column>
-              <Grid.Column width={6}>
+              <Grid.Column width={5}>
                 <Dropdown
                   fluid
                   selection
@@ -304,6 +325,19 @@ const IndexPage: React.FC = () => {
                   onChange={handleCategoryChange}
                   value=""
                   style={{ borderColor: colors.primary, borderRadius: '20px' }}
+                />
+              </Grid.Column>
+              <Grid.Column width={5}>
+                <Dropdown
+                  fluid
+                  selection
+                  search
+                  placeholder={t('selectCompany')}
+                  options={companies.map(company => ({ key: company, text: company, value: company }))}
+                  onChange={handleCompanyChange}
+                  value={selectedCompany || ''}
+                  style={{ borderColor: colors.primary, borderRadius: '20px' }}
+                  disabled={isLoggedIn}
                 />
               </Grid.Column>
             </Grid.Row>
@@ -366,6 +400,10 @@ const IndexPage: React.FC = () => {
                     <Label color={book.condition === 'new' ? 'blue' : 'grey'} style={{ borderRadius: '15px' }}>
                       {t(book.condition)}
                     </Label>
+                  </Card.Content>
+                  <Card.Content extra>
+                    <Icon name='building' style={{ color: colors.primary }} />
+                    {book.company}
                   </Card.Content>
                 </PlayfulCard>
               </Grid.Column>

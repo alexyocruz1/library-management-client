@@ -99,5 +99,6 @@
     "generalInfo": "Información General",
     "copy": "Copia",
     "status": "Estado",
-    "selectCompany": "Seleccionar Empresa"
+    "selectCompany": "Seleccionar Empresa",
+    "companyBooks": "Libros de {{company}}"
 }

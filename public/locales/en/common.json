@@ -100,5 +100,6 @@
     "generalInfo": "General Info",
     "copy": "Copy",
     "status": "Status",
-    "selectCompany": "Select Company"
+    "selectCompany": "Select Company",
+    "companyBooks": "Books from {{company}}"
 }
