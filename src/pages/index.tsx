@@ -7,7 +7,7 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { GetStaticProps } from 'next';
 import Image from 'next/image';
 import { Container, Grid, Card, Input, Pagination, Loader, Message, Label, Dropdown, Segment, Header, Icon, DropdownProps, PaginationProps, Button } from 'semantic-ui-react';
-import { toast, ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import BookDetailsModal from '../components/BookDetailsModal';
 import styled from 'styled-components';
@@ -415,7 +415,6 @@ const IndexPage: React.FC = () => {
 
         {renderPagination()}
       </PlayfulContainer>
-      <ToastContainer />
       <BookDetailsModal
         book={selectedBook}
         open={isModalOpen}

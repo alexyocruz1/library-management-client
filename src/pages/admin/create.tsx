@@ -1,6 +1,6 @@
 // pages/admin/create.tsx
 import React, { useState, CSSProperties, useEffect } from 'react';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import Navbar from '../../components/Navbar';
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
@@ -116,6 +116,7 @@ const CreatePage: React.FC = () => {
   const [isEditableField, setIsEditableField] = useState<{[key: string]: boolean}>({});
   const [costInput, setCostInput] = useState('');
   const [company, setCompany] = useState<string | null>(null);
+  const [userCompany, setUserCompany] = useState<string | null>(null);
 
   const selectId = 'category-select';
 
@@ -126,6 +127,7 @@ const CreatePage: React.FC = () => {
     if (token) {
       const decodedToken = jwtDecode(token) as { company: string };
       setCompany(decodedToken.company);
+      setUserCompany(decodedToken.company);
     }
   }, []);
 
@@ -218,7 +220,7 @@ const CreatePage: React.FC = () => {
       const bookData = {
         ...formData,
         categories: selectedCategories,
-        company, // Include the user's company
+        company: userCompany, // Include the user's company
       };
       console.log('Submitting book data:', bookData);
       const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books`, bookData);
@@ -247,8 +249,14 @@ const CreatePage: React.FC = () => {
         setSelectedCategories([]);
         setCostInput('');
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error creating book:', error);
+      if (axios.isAxiosError(error)) {
+        const axiosError = error as AxiosError;
+        if (axiosError.response) {
+          console.error('Error response:', axiosError.response.data);
+        }
+      }
       toast(t('bookCreationError'), { type: 'error' });
     }
   };
