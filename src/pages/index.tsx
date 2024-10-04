@@ -127,6 +127,7 @@ const IndexPage: React.FC = () => {
   const [userCompany, setUserCompany] = useState<string | null>(null);
   const [companies, setCompanies] = useState<string[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<string>('all');
+  const [isChangingCompany, setIsChangingCompany] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -136,11 +137,18 @@ const IndexPage: React.FC = () => {
     fetchCompanies();
   }, [currentPage, searchTerm, selectedCategories, selectedCompany, isLoggedIn]);
 
+  useEffect(() => {
+    if (isChangingCompany) {
+      fetchBooks().then(() => setIsChangingCompany(false));
+    }
+  }, [selectedCompany]);
+
   const checkAuthStatus = () => {
     const token = localStorage.getItem('token');
     if (token) {
       const decodedToken = jwtDecode(token) as { company: string };
       setUserCompany(decodedToken.company);
+      setIsChangingCompany(true);
       setSelectedCompany(decodedToken.company);
       setIsLoggedIn(true);
     } else {
@@ -259,6 +267,7 @@ const IndexPage: React.FC = () => {
   };
 
   const handleCompanyChange = (e: React.SyntheticEvent<HTMLElement, Event>, data: DropdownProps) => {
+    setIsChangingCompany(true);
     setSelectedCompany(data.value as string);
     setCurrentPage(1);
   };
@@ -350,7 +359,7 @@ const IndexPage: React.FC = () => {
           )}
         </Segment>
 
-        {loading ? (
+        {(loading || isChangingCompany) ? (
           <Loader active inline="centered" />
         ) : error ? (
           <Message negative>{error}</Message>
