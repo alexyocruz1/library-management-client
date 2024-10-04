@@ -107,5 +107,8 @@
     "resetFormConfirmation": "Are you sure you want to reset the form? This will clear all fields.",
     "cancel": "Cancel",
     "confirm": "Confirm",
-    "formResetSuccess": "Form has been reset successfully!"
+    "formResetSuccess": "Form has been reset successfully!",
+    "companyNotFound": "User company not found. Please log in again.",
+    "errorDecodingToken": "Error decoding user token. Please log in again.",
+    "noTokenFound": "No user token found. Please log in."
 }

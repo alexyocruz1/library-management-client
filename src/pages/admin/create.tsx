@@ -115,20 +115,37 @@ const CreatePage: React.FC = () => {
   const selectId = 'category-select';
 
   useEffect(() => {
-    fetchCategories();
-    setIsMounted(true);
     const token = localStorage.getItem('token');
     if (token) {
-      const decodedToken = jwtDecode(token) as { company: string };
-      setCompany(decodedToken.company);
-      setUserCompany(decodedToken.company);
+      try {
+        const decodedToken = jwtDecode(token) as { company: string };
+        setUserCompany(decodedToken.company);
+      } catch (error) {
+        console.error('Error decoding token:', error);
+        toast(t('errorDecodingToken'), { type: 'error' });
+      }
+    } else {
+      toast(t('noTokenFound'), { type: 'error' });
     }
   }, []);
+
+  useEffect(() => {
+    console.log('Component mounted, setting isMounted to true');
+    setIsMounted(true);
+  }, []); // Empty dependency array ensures this runs only once after mount
+
+  useEffect(() => {
+    console.log('isMounted changed:', isMounted);
+    if (isMounted) {
+      fetchCategories();
+    }
+  }, [isMounted]);
 
   const fetchCategories = async () => {
     try {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books/categories`);
       setCategories(response.data.categories);
+      console.log('Categories fetched:', response.data.categories);
     } catch (error) {
       console.error('Error fetching categories:', error);
     }
@@ -214,7 +231,7 @@ const CreatePage: React.FC = () => {
       const bookData = {
         ...formData,
         categories: selectedCategories,
-        company: userCompany, // Include the user's company
+        company: userCompany,
       };
       console.log('Submitting book data:', bookData);
       const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books`, bookData);
@@ -258,7 +275,11 @@ const CreatePage: React.FC = () => {
   const handleSearch = async () => {
     setIsSearchMode(true);
     try {
-      const url = `${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books/search?q=${encodeURIComponent(searchTerm)}`;
+      if (!userCompany) {
+        toast(t('companyNotFound'), { type: 'error' });
+        return;
+      }
+      const url = `${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books/search?q=${encodeURIComponent(searchTerm)}&company=${encodeURIComponent(userCompany)}`;
       const response = await axios.get(url);
       setSearchResults(response.data.books);
     } catch (error) {
@@ -491,16 +512,16 @@ const CreatePage: React.FC = () => {
         </div>
         <div className="field">
           <label>{t('categories')}</label>
-          {isMounted && (
+          {isMounted ? (
             <CreatableSelect
-              instanceId={selectId}
               isMulti
               options={categories.map(cat => ({ value: cat, label: cat }))}
               onChange={handleCategoryChange}
               value={selectedCategories.map(cat => ({ value: cat, label: cat }))}
               placeholder={t('selectOrTypeCategories')}
-              formatCreateLabel={(inputValue) => `Create "${inputValue}"`}
             />
+          ) : (
+            <div>Loading categories...</div>
           )}
         </div>
         <div className="field">
@@ -569,6 +590,8 @@ const CreatePage: React.FC = () => {
     marginBottom: '1rem',
   };
 
+  console.log('Rendering component, isMounted:', isMounted);
+
   return (
     <div>
       <Navbar isLoggedIn={true} />
@@ -602,13 +625,14 @@ const CreatePage: React.FC = () => {
 
               {searchResults.length > 0 && (
                 <Dropdown
-                  placeholder={t('selectBookToCopy')}
+                  placeholder={t('searchBooks')}
                   fluid
                   search
                   selection
                   options={renderSearchResults()}
                   onChange={handleBookSelect}
-                  style={{ marginBottom: '1rem' }}
+                  value={selectedBook?._id || ''}
+                  key={searchResults.length} // Add this line
                 />
               )}
 
@@ -696,16 +720,16 @@ const CreatePage: React.FC = () => {
 
                   <Form.Field>
                     <label>{t('categories')}</label>
-                    {isMounted && (
+                    {isMounted ? (
                       <CreatableSelect
-                        instanceId={selectId}
                         isMulti
                         options={categories.map(cat => ({ value: cat, label: cat }))}
                         onChange={handleCategoryChange}
                         value={selectedCategories.map(cat => ({ value: cat, label: cat }))}
                         placeholder={t('selectOrTypeCategories')}
-                        formatCreateLabel={(inputValue) => `Create "${inputValue}"`}
                       />
+                    ) : (
+                      <div>Loading categories...</div>
                     )}
                   </Form.Field>
 

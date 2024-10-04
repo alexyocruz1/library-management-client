@@ -108,5 +108,8 @@
     "resetFormConfirmation": "¿Estás seguro de que quieres reiniciar el formulario? Esto borrará todos los campos.",
     "cancel": "Cancelar",
     "confirm": "Confirmar",
-    "formResetSuccess": "¡El formulario se ha reiniciado con éxito!"
+    "formResetSuccess": "¡El formulario se ha reiniciado con éxito!",
+    "companyNotFound": "No se encontró la empresa del usuario. Por favor, inicie sesión de nuevo.",
+    "errorDecodingToken": "Error al decodificar el token del usuario. Por favor, inicie sesión de nuevo.",
+    "noTokenFound": "No se encontró el token del usuario. Por favor, inicie sesión."
 }
