@@ -5,7 +5,7 @@ import Navbar from '../../components/Navbar';
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { GetStaticProps } from 'next';
-import { Dropdown, DropdownProps, Button, Segment, Header, Icon, Grid, Form, InputOnChangeData, TextAreaProps, Confirm } from 'semantic-ui-react';
+import { Dropdown, DropdownProps, Button, Segment, Header, Icon, Grid, Form, InputOnChangeData, TextAreaProps } from 'semantic-ui-react';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import dynamic from 'next/dynamic';
@@ -78,7 +78,7 @@ const CreatePage: React.FC = () => {
     status: 'available',
     condition: 'good',
     location: '',
-    company: null,
+    company: '',
     cost: '',
     dateAcquired: new Date().toISOString().split('T')[0],
     observations: '',
@@ -97,7 +97,6 @@ const CreatePage: React.FC = () => {
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [isEditableField, setIsEditableField] = useState<{[key: string]: boolean}>({});
   const [costInput, setCostInput] = useState('');
-  const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
   const [dropdownKey, setDropdownKey] = useState(0);
 
   const selectId = 'category-select';
@@ -106,11 +105,16 @@ const CreatePage: React.FC = () => {
     const token = localStorage.getItem('token');
     if (token) {
       const decodedToken = jwtDecode(token) as { company: string };
-      setUserCompany(decodedToken.company);
+      const company = decodedToken.company || 'Default Company'; // Provide a default value
+      setUserCompany(company);
       setFormData(prevData => ({
         ...prevData,
-        company: decodedToken.company,
+        company: company,
       }));
+    } else {
+      // Handle case when there's no token
+      toast.error(t('noTokenFound'));
+      // Redirect to login or handle appropriately
     }
   }, []);
 
@@ -228,10 +232,15 @@ const CreatePage: React.FC = () => {
       return;
     }
 
+    if (!userCompany) {
+      toast(t('companyNotFound'), { type: 'error' });
+      return;
+    }
+
     try {
       const bookData = convertFormDataToBook({
         ...formData,
-        company: userCompany || '',
+        company: userCompany, // Always use userCompany here
       });
       const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books`, bookData);
       if (response.status === 201) {
@@ -352,6 +361,11 @@ const CreatePage: React.FC = () => {
       return;
     }
 
+    if (!userCompany) {
+      toast.error(t('companyNotFound'));
+      return;
+    }
+
     try {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books/${selectedBook._id}/copy`, {
         invoiceCode: formData.invoiceCode,
@@ -417,7 +431,7 @@ const CreatePage: React.FC = () => {
         imageUrl: '',
         condition: 'good',
         status: 'available',
-        company: userCompany, // Use userCompany here
+        company: userCompany || prevData.company || '', // Use userCompany, fallback to previous value or empty string
         observations: '',
         copies: 1,
       }));
@@ -555,49 +569,6 @@ const CreatePage: React.FC = () => {
     );
   };
 
-  const handleResetForm = () => {
-    setIsResetConfirmOpen(true);
-  };
-
-  const confirmReset = () => {
-    setFormData({
-      invoiceCode: '',
-      code: '',
-      title: '',
-      author: '',
-      editorial: '',
-      edition: '',
-      categories: [],
-      coverType: 'soft',
-      location: '',
-      cost: '',
-      dateAcquired: new Date().toISOString().split('T')[0],
-      description: '',
-      imageUrl: '',
-      condition: 'good',
-      status: 'available',
-      company: userCompany || null,
-      observations: '',
-      copies: 1,
-    });
-    setSelectedCategories([]);
-    setCostInput('');
-    setSelectedBook(null);
-    setIsSearchMode(false);
-    setIsResetConfirmOpen(false);
-    toast.success(t('formResetSuccess'));
-  };
-
-  const buttonStyle = {
-    backgroundColor: colors.secondary,
-    color: 'white',
-    borderRadius: '20px',
-    fontFamily: "'KidsFont', sans-serif",
-    transition: 'all 0.3s ease',
-    marginTop: '1rem',
-    marginBottom: '1rem',
-  };
-  
   return (
     <div>
       <Navbar isLoggedIn={true} />
@@ -812,34 +783,6 @@ const CreatePage: React.FC = () => {
           )}
         </PlayfulSegment>
       </PlayfulContainer>
-      <Button 
-        onClick={handleResetForm} 
-        icon 
-        labelPosition='left'
-        style={buttonStyle}
-        className="reset-button"
-      >
-        <Icon name='undo' />
-        {t('resetForm')}
-      </Button>
-
-      <Confirm
-        open={isResetConfirmOpen}
-        content={t('resetFormConfirmation')}
-        onCancel={() => setIsResetConfirmOpen(false)}
-        onConfirm={confirmReset}
-        cancelButton={t('cancel')}
-        confirmButton={t('confirm')}
-      />
-      <style jsx global>{`
-        .reset-button:hover {
-          transform: scale(1.05) !important;
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
-        }
-        .reset-button:active {
-          transform: scale(0.95) !important;
-        }
-      `}</style>
     </div>
   );
 };
