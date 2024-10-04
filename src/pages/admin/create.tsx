@@ -5,8 +5,8 @@ import Navbar from '../../components/Navbar';
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { GetStaticProps } from 'next';
-import { Dropdown, DropdownProps, Button, Segment, Header, Icon, Grid, Form, InputOnChangeData, TextAreaProps } from 'semantic-ui-react';
-import { toast, ToastContainer } from 'react-toastify';
+import { Dropdown, DropdownProps, Button, Segment, Header, Icon, Grid, Form, InputOnChangeData, TextAreaProps, Confirm } from 'semantic-ui-react';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
@@ -72,13 +72,6 @@ const PlayfulHeader = styled.h2`
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
 `;
 
-const PlayfulButton = styled(Button)`
-  background-color: ${colors.secondary} !important;
-  color: white !important;
-  border-radius: 20px !important;
-  font-family: 'KidsFont', sans-serif !important;
-`;
-
 const PlayfulSegment = styled(Segment)`
   border-radius: 15px !important;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
@@ -117,6 +110,7 @@ const CreatePage: React.FC = () => {
   const [costInput, setCostInput] = useState('');
   const [company, setCompany] = useState<string | null>(null);
   const [userCompany, setUserCompany] = useState<string | null>(null);
+  const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
 
   const selectId = 'category-select';
 
@@ -326,48 +320,63 @@ const CreatePage: React.FC = () => {
         edition: false,
       });
       setCostInput(formattedCost);
-
-      // Add this line to show the number of copies
-      toast(`${t('currentCopies')}: ${book.copiesCount || 1}`, { type: 'info' });
     }
   };
 
   const handleCopyBook = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!selectedBook) {
-      toast(t('noBookSelected'), { type: 'error' });
+      toast.error(t('noBookSelected'));
       return;
     }
 
     try {
-      console.log('Copying book:', selectedBook._id);
       const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books/${selectedBook._id}/copy`, {
         invoiceCode: formData.invoiceCode,
-        coverType: formData.coverType,
         location: formData.location,
         cost: formData.cost,
         dateAcquired: formData.dateAcquired,
+        observations: formData.description,
         condition: formData.condition,
-        categories: selectedCategories,
-        imageUrl: formData.imageUrl,
+        company: userCompany,
       });
-      console.log('API response:', response);
+
       if (response.status === 201) {
-        toast(t('bookCopiedSuccess'), { type: 'success' });
-        setSelectedBook({
-          ...selectedBook,
-          copiesCount: (selectedBook.copiesCount || 0) + 1
-        } as Book);
-        setSearchResults(prevResults =>
-          prevResults.map(book =>
-            book._id === selectedBook._id ? { ...book, copiesCount: (book.copiesCount || 0) + 1 } : book
-          )
-        );
+        toast.success(t('bookCopiedSuccess'));
+        
+        // Update the copiesCount in the UI
+        setSelectedBook(prevBook => {
+          if (prevBook) {
+            return { ...prevBook, copiesCount: response.data.copiesCount };
+          }
+          return prevBook;
+        });
+
+        // Update the search results to reflect the new copy
+        updateSearchResults(response.data);
+
+        // Show the new total number of copies
+        console.log('Copies count:', response.data.copiesCount);
+        console.log('Translated message:', t('currentCopies', { count: response.data.copiesCount }));
+        toast.info(t('currentCopies', { count: response.data.copiesCount }), { autoClose: 3000 });
       }
     } catch (error) {
       console.error('Error copying book:', error);
-      toast(t('bookCopyError'), { type: 'error' });
+      toast.error(t('bookCopyError'));
     }
+  };
+
+  const updateSearchResults = (newBook: Book) => {
+    setSearchResults(prevResults => {
+      const index = prevResults.findIndex(book => book._id === newBook._id);
+      if (index !== -1) {
+        const updatedResults = [...prevResults];
+        updatedResults[index] = { ...updatedResults[index], copiesCount: newBook.copiesCount };
+        return updatedResults;
+      }
+      return prevResults;
+    });
   };
 
   const toggleMode = () => {
@@ -514,11 +523,50 @@ const CreatePage: React.FC = () => {
             </div>
           )}
         </div>
-        <PlayfulButton className="ui primary button" type="submit" style={{ marginTop: '1rem' }}>
+        <Button className="ui primary button" type="submit" style={{ marginTop: '1rem' }}>
           {t('copySelectedBook')}
-        </PlayfulButton>
+        </Button>
       </form>
     );
+  };
+
+  const handleResetForm = () => {
+    setIsResetConfirmOpen(true);
+  };
+
+  const confirmReset = () => {
+    setFormData({
+      invoiceCode: '',
+      code: '',
+      title: '',
+      author: '',
+      editorial: '',
+      edition: '',
+      categories: [],
+      coverType: 'soft',
+      location: '',
+      cost: '',
+      dateAcquired: new Date().toISOString().split('T')[0],
+      description: '',
+      imageUrl: '',
+      condition: 'good',
+    });
+    setSelectedCategories([]);
+    setCostInput('');
+    setSelectedBook(null);
+    setIsSearchMode(false);
+    setIsResetConfirmOpen(false);
+    toast.success(t('formResetSuccess'));
+  };
+
+  const buttonStyle = {
+    backgroundColor: colors.secondary,
+    color: 'white',
+    borderRadius: '20px',
+    fontFamily: "'KidsFont', sans-serif",
+    transition: 'all 0.3s ease',
+    marginTop: '1rem',
+    marginBottom: '1rem',
   };
 
   return (
@@ -535,9 +583,9 @@ const CreatePage: React.FC = () => {
             </Header.Content>
           </Header>
           
-          <PlayfulButton onClick={toggleMode} style={{ marginBottom: '1rem' }}>
+          <Button onClick={toggleMode} style={{ marginBottom: '1rem' }}>
             {isSearchMode ? t('createNewBook') : t('searchExistingBooks')}
-          </PlayfulButton>
+          </Button>
 
           {isSearchMode ? (
             <>
@@ -549,7 +597,7 @@ const CreatePage: React.FC = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                 />
-                <PlayfulButton icon='search' onClick={handleSearch} />
+                <Button icon='search' onClick={handleSearch} />
               </div>
 
               {searchResults.length > 0 && (
@@ -720,24 +768,41 @@ const CreatePage: React.FC = () => {
                   onChange={handleChange}
                 />
               )}
-              <PlayfulButton primary type="submit" style={{ marginTop: '1rem' }} disabled={isSearchMode}>
+              <Button primary type="submit" style={{ marginTop: '1rem' }} disabled={isSearchMode}>
                 {t('submit')}
-              </PlayfulButton>
+              </Button>
             </Form>
           )}
         </PlayfulSegment>
       </PlayfulContainer>
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
+      <Button 
+        onClick={handleResetForm} 
+        icon 
+        labelPosition='left'
+        style={buttonStyle}
+        className="reset-button"
+      >
+        <Icon name='undo' />
+        {t('resetForm')}
+      </Button>
+
+      <Confirm
+        open={isResetConfirmOpen}
+        content={t('resetFormConfirmation')}
+        onCancel={() => setIsResetConfirmOpen(false)}
+        onConfirm={confirmReset}
+        cancelButton={t('cancel')}
+        confirmButton={t('confirm')}
       />
+      <style jsx global>{`
+        .reset-button:hover {
+          transform: scale(1.05) !important;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+        }
+        .reset-button:active {
+          transform: scale(0.95) !important;
+        }
+      `}</style>
     </div>
   );
 };

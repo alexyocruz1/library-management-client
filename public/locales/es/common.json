@@ -91,7 +91,7 @@
     "enterCategories": "Ingrese categorías",
     "newToUs": "¿Eres nuevo?",
     "alreadyHaveAccount": "¿Ya tienes una cuenta?",
-    "currentCopies": "Copias actuales",
+    "currentCopies": "Copias actuales: {{count}}",
     "clearAll": "Limpiar Todo",
     "copies": "Copias",
     "close": "Cerrar",
@@ -100,5 +100,13 @@
     "copy": "Copia",
     "status": "Estado",
     "selectCompany": "Seleccionar Empresa",
-    "companyBooks": "Libros de {{company}}"
+    "allBooks": "Todos los Libros",
+    "companyBooks": "Libros de {{company}}",
+    "LogoutNavbar": "Cerrar Sesión",
+    "company": "Empresa",
+    "resetForm": "Reiniciar Formulario",
+    "resetFormConfirmation": "¿Estás seguro de que quieres reiniciar el formulario? Esto borrará todos los campos.",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "formResetSuccess": "¡El formulario se ha reiniciado con éxito!"
 }

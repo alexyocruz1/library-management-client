@@ -87,7 +87,7 @@
     "softCover": "Soft Cover",
     "newToUs": "New to us?",
     "alreadyHaveAccount": "Already have an account?",
-    "currentCopies": "Current copies",
+    "currentCopies": "Current copies: {{count}}",
     "filterByCategory": "Filter by category",
     "selectCondition": "Select condition",
     "enterCategories": "Enter categories",
@@ -101,5 +101,11 @@
     "copy": "Copy",
     "status": "Status",
     "selectCompany": "Select Company",
-    "companyBooks": "Books from {{company}}"
+    "allBooks": "All Books",
+    "companyBooks": "Books from {{company}}",
+    "resetForm": "Reset Form",
+    "resetFormConfirmation": "Are you sure you want to reset the form? This will clear all fields.",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "formResetSuccess": "Form has been reset successfully!"
 }

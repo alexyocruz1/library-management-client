@@ -159,7 +159,7 @@ const IndexPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [userCompany, setUserCompany] = useState<string | null>(null);
   const [companies, setCompanies] = useState<string[]>([]);
-  const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
+  const [selectedCompany, setSelectedCompany] = useState<string>('all');
   const router = useRouter();
 
   useEffect(() => {
@@ -208,7 +208,7 @@ const IndexPage: React.FC = () => {
           page: currentPage, 
           search: searchTerm, 
           categories: selectedCategories.join(','),
-          company: selectedCompany || userCompany
+          company: selectedCompany === 'all' ? undefined : selectedCompany
         },
       });
       setBooks(response.data.books);
@@ -293,6 +293,11 @@ const IndexPage: React.FC = () => {
     setCurrentPage(1);
   };
 
+  const companyOptions = [
+    { key: 'all', text: t('allBooks'), value: 'all' },
+    ...companies.map(company => ({ key: company, text: company, value: company }))
+  ];
+
   return (
     <div style={{ minHeight: '100vh', paddingBottom: '2em' }}>
       <Navbar isLoggedIn={isLoggedIn} />
@@ -333,9 +338,9 @@ const IndexPage: React.FC = () => {
                   selection
                   search
                   placeholder={t('selectCompany')}
-                  options={companies.map(company => ({ key: company, text: company, value: company }))}
+                  options={companyOptions}
                   onChange={handleCompanyChange}
-                  value={selectedCompany || ''}
+                  value={selectedCompany}
                   style={{ borderColor: colors.primary, borderRadius: '20px' }}
                   disabled={isLoggedIn}
                 />
