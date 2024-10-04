@@ -111,6 +111,7 @@ const CreatePage: React.FC = () => {
   const [company, setCompany] = useState<string | null>(null);
   const [userCompany, setUserCompany] = useState<string | null>(null);
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
+  const [dropdownKey, setDropdownKey] = useState(0);
 
   const selectId = 'category-select';
 
@@ -130,12 +131,10 @@ const CreatePage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    console.log('Component mounted, setting isMounted to true');
     setIsMounted(true);
   }, []); // Empty dependency array ensures this runs only once after mount
 
   useEffect(() => {
-    console.log('isMounted changed:', isMounted);
     if (isMounted) {
       fetchCategories();
     }
@@ -145,7 +144,6 @@ const CreatePage: React.FC = () => {
     try {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books/categories`);
       setCategories(response.data.categories);
-      console.log('Categories fetched:', response.data.categories);
     } catch (error) {
       console.error('Error fetching categories:', error);
     }
@@ -233,9 +231,7 @@ const CreatePage: React.FC = () => {
         categories: selectedCategories,
         company: userCompany,
       };
-      console.log('Submitting book data:', bookData);
       const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books`, bookData);
-      console.log('API response:', response);
       if (response.status === 201) {
         toast(t('bookCreatedSuccess'), { type: 'success' });
         setFormData({
@@ -367,20 +363,16 @@ const CreatePage: React.FC = () => {
         toast.success(t('bookCopiedSuccess'));
         
         // Update the copiesCount in the UI
-        setSelectedBook(prevBook => {
-          if (prevBook) {
-            return { ...prevBook, copiesCount: response.data.copiesCount };
-          }
-          return prevBook;
-        });
+        const updatedBook = { ...selectedBook, copiesCount: response.data.copiesCount };
+        setSelectedBook(updatedBook);
 
         // Update the search results to reflect the new copy
-        updateSearchResults(response.data);
+        updateSearchResults(updatedBook);
 
-        // Show the new total number of copies
-        console.log('Copies count:', response.data.copiesCount);
-        console.log('Translated message:', t('currentCopies', { count: response.data.copiesCount }));
         toast.info(t('currentCopies', { count: response.data.copiesCount }), { autoClose: 3000 });
+
+        // Force re-render of dropdown
+        setDropdownKey(prevKey => prevKey + 1);
       }
     } catch (error) {
       console.error('Error copying book:', error);
@@ -398,6 +390,8 @@ const CreatePage: React.FC = () => {
       }
       return prevResults;
     });
+    // Force re-render of dropdown
+    setDropdownKey(prevKey => prevKey + 1);
   };
 
   const toggleMode = () => {
@@ -589,9 +583,7 @@ const CreatePage: React.FC = () => {
     marginTop: '1rem',
     marginBottom: '1rem',
   };
-
-  console.log('Rendering component, isMounted:', isMounted);
-
+  
   return (
     <div>
       <Navbar isLoggedIn={true} />
@@ -632,7 +624,7 @@ const CreatePage: React.FC = () => {
                   options={renderSearchResults()}
                   onChange={handleBookSelect}
                   value={selectedBook?._id || ''}
-                  key={searchResults.length} // Add this line
+                  key={`${searchResults.length}-${dropdownKey}`}
                 />
               )}
 
