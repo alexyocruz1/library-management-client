@@ -110,5 +110,17 @@
     "formResetSuccess": "Form has been reset successfully!",
     "companyNotFound": "User company not found. Please log in again.",
     "errorDecodingToken": "Error decoding user token. Please log in again.",
-    "noTokenFound": "No user token found. Please log in."
+    "noTokenFound": "No user token found. Please log in.",
+    "deleteBook": "Delete Book",
+    "deleteCopy": "Delete Copy",
+    "deleteBookConfirmation": "Are you sure you want to delete this book and all its copies?",
+    "deleteCopyConfirmation": "Are you sure you want to delete this copy?",
+    "bookDeletedSuccess": "Book deleted successfully!",
+    "copyDeletedSuccess": "Copy deleted successfully!",
+    "bookDeleteError": "Error deleting book. Please try again.",
+    "copyDeleteError": "Error deleting copy. Please try again.",
+    "delete": "Delete",
+    "company": "Company",
+    "confirmDeleteBook": "Are you sure you want to delete this book?",
+    "confirmDeleteCopy": "Are you sure you want to delete this copy?"
 }

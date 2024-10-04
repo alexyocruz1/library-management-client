@@ -111,5 +111,16 @@
     "formResetSuccess": "¡El formulario se ha reiniciado con éxito!",
     "companyNotFound": "No se encontró la empresa del usuario. Por favor, inicie sesión de nuevo.",
     "errorDecodingToken": "Error al decodificar el token del usuario. Por favor, inicie sesión de nuevo.",
-    "noTokenFound": "No se encontró el token del usuario. Por favor, inicie sesión."
+    "noTokenFound": "No se encontró el token del usuario. Por favor, inicie sesión.",
+    "deleteBook": "Eliminar Libro",
+    "deleteCopy": "Eliminar Copia",
+    "deleteBookConfirmation": "¿Estás seguro de que quieres eliminar este libro y todas sus copias?",
+    "deleteCopyConfirmation": "¿Estás seguro de que quieres eliminar esta copia?",
+    "bookDeletedSuccess": "¡Libro eliminado con éxito!",
+    "copyDeletedSuccess": "¡Copia eliminada con éxito!",
+    "bookDeleteError": "Error al eliminar el libro. Por favor, inténtalo de nuevo.",
+    "copyDeleteError": "Error al eliminar la copia. Por favor, inténtalo de nuevo.",
+    "delete": "Eliminar",
+    "confirmDeleteBook": "¿Estás seguro de que quieres eliminar este libro?",
+    "confirmDeleteCopy": "¿Estás seguro de que quieres eliminar esta copia?"
 }

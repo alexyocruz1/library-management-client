@@ -14,40 +14,7 @@ import styled from 'styled-components';
 import { colors } from '../styles/colors';
 import { jwtDecode } from 'jwt-decode'; // Change to named import
 import { useRouter } from 'next/router';
-
-// Update the BookCopy interface
-export interface BookCopy {
-  _id: string;
-  invoiceCode: string;
-  code: string;
-  location: string;
-  cost: number;
-  dateAcquired: string;
-  status: string;
-  condition: string;
-  observations: string;
-}
-
-// Update the Book interface
-export interface Book {
-  _id: string;
-  title: string;
-  author: string;
-  editorial: string;
-  edition: string;
-  categories: string[];
-  coverType: string;
-  imageUrl: string;
-  copies: BookCopy[];
-  copiesCount: number;
-  status: string;
-  condition: string;
-  location: string; // Add this line
-  company: string; // Add this line
-  // Add any other properties that are in your original Book interface
-}
-
-type ModalBook = Book;
+import { Book } from '../types/book';
 
 const BookImage: React.FC<{ src: string | null; alt: string }> = ({ src, alt }) => {
   const [imgSrc, setImgSrc] = useState<string | null>(src);
@@ -298,6 +265,20 @@ const IndexPage: React.FC = () => {
     ...companies.map(company => ({ key: company, text: company, value: company }))
   ];
 
+  const handleBookUpdate = (updatedBook: Book | null) => {
+    if (updatedBook === null) {
+      // Book was deleted, remove it from the list
+      setBooks(prevBooks => prevBooks.filter(book => book._id !== selectedBook?._id));
+      setSelectedBook(null);
+    } else {
+      // Book was updated, update it in the list
+      setBooks(prevBooks => prevBooks.map(book => 
+        book._id === updatedBook._id ? updatedBook : book
+      ));
+      setSelectedBook(updatedBook);
+    }
+  };
+
   return (
     <div style={{ minHeight: '100vh', paddingBottom: '2em' }}>
       <Navbar isLoggedIn={isLoggedIn} />
@@ -424,6 +405,7 @@ const IndexPage: React.FC = () => {
         book={selectedBook}
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        onBookUpdate={handleBookUpdate}
       />
     </div>
   );

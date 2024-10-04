@@ -14,43 +14,27 @@ import styled from 'styled-components';
 import { colors } from '../../styles/colors';
 import { tokens } from '../../styles/tokens';
 import { jwtDecode } from 'jwt-decode'; // Change to named import
-
-interface Book {
-  _id: string;
-  code: string;
-  title: string;
-  author: string;
-  editorial: string;
-  edition: string;
-  categories: string[];
-  coverType: string;
-  location: string;
-  cost: string;
-  dateAcquired: string;
-  description: string;
-  imageUrl?: string;
-  copies?: number;
-  condition: 'good' | 'regular' | 'bad';
-  copiesCount?: number;
-}
+import { Book } from '../../types/book';
 
 interface FormData {
-  [key: string]: string | number | string[] | undefined;
   invoiceCode: string;
-  code: string;
   title: string;
   author: string;
   editorial: string;
   edition: string;
   categories: string[];
   coverType: string;
+  imageUrl: string;
+  status: string;
+  condition: string;
   location: string;
+  company: string;
+  code: string;
   cost: string;
   dateAcquired: string;
+  observations: string;
   description: string;
-  imageUrl: string;
   copies?: number;
-  condition: 'good' | 'regular' | 'bad';
 }
 
 const CreatableSelect = dynamic(
@@ -88,13 +72,17 @@ const CreatePage: React.FC = () => {
     editorial: '',
     edition: '',
     categories: [],
-    coverType: 'soft', // Set a default value
+    coverType: 'soft',
+    imageUrl: '',
+    status: 'available',
+    condition: 'good',
     location: '',
+    company: '',
     cost: '',
     dateAcquired: new Date().toISOString().split('T')[0],
+    observations: '',
     description: '',
-    imageUrl: '',
-    condition: 'good',
+    copies: 1, // Add this line
   });
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<Book[]>([]);
@@ -163,11 +151,28 @@ const CreatePage: React.FC = () => {
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | React.SyntheticEvent<HTMLElement, Event>,
-    data?: DropdownProps | InputOnChangeData | TextAreaProps
+    data?: InputOnChangeData | TextAreaProps | DropdownProps
   ) => {
-    const name = (data && 'name' in data) ? data.name as string : (e.target as HTMLInputElement).name;
-    const value = (data && 'value' in data) ? data.value : (e.target as HTMLInputElement).value;
-    setFormData(prevData => ({ ...prevData, [name]: value as string | number | string[] }));
+    let name: string;
+    let value: string | number | boolean | (string | number | boolean)[] | undefined;
+
+    if ('name' in e.target) {
+      // This is a standard DOM event
+      name = e.target.name;
+      value = (e.target as HTMLInputElement | HTMLTextAreaElement).value;
+    } else if (data) {
+      // This is a Semantic UI React event
+      name = (data as DropdownProps).name || '';
+      value = (data as DropdownProps).value;
+    } else {
+      // If we can't handle this event, just return
+      return;
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const handleCostChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -175,13 +180,11 @@ const CreatePage: React.FC = () => {
     // Allow only numbers and a single decimal point
     if (/^\d*\.?\d*$/.test(value)) {
       setCostInput(value);
-      // Update formData with the parsed float value
-      setFormData(prev => ({ ...prev, cost: value ? parseFloat(value).toString() : '' }));
+      setFormData(prev => ({ ...prev, cost: value }));
     }
   };
 
   const handleCostBlur = () => {
-    // Format the value to always have two decimal places when leaving the field
     if (costInput) {
       const formattedValue = parseFloat(costInput).toFixed(2);
       setCostInput(formattedValue);
@@ -213,11 +216,19 @@ const CreatePage: React.FC = () => {
     }
   };
 
+  const convertFormDataToBook = (formData: FormData): Omit<Book, '_id' | 'copies' | 'copiesCount'> => {
+    return {
+      ...formData,
+      cost: parseFloat(formData.cost) || 0,
+      // Add any other necessary conversions here
+    };
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
 
-    const requiredFields = ['invoiceCode', 'title', 'author', 'editorial', 'edition', 'categories', 'coverType', 'location', 'cost', 'dateAcquired'];
+    const requiredFields: (keyof FormData)[] = ['invoiceCode', 'title', 'author', 'editorial', 'edition', 'categories', 'coverType', 'location', 'cost', 'dateAcquired'];
     const emptyFields = requiredFields.filter(field => !formData[field]);
 
     if (emptyFields.length > 0) {
@@ -226,11 +237,7 @@ const CreatePage: React.FC = () => {
     }
 
     try {
-      const bookData = {
-        ...formData,
-        categories: selectedCategories,
-        company: userCompany,
-      };
+      const bookData = convertFormDataToBook(formData);
       const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books`, bookData);
       if (response.status === 201) {
         toast(t('bookCreatedSuccess'), { type: 'success' });
@@ -249,6 +256,10 @@ const CreatePage: React.FC = () => {
           description: '',
           imageUrl: '',
           condition: 'good',
+          status: 'available',
+          company: '',
+          observations: '',
+          copies: 1, // Add this line
         });
         setSearchTerm('');
         setSearchResults([]);
@@ -307,18 +318,16 @@ const CreatePage: React.FC = () => {
       setSelectedBook(book);
       
       const dateAcquired = book.dateAcquired ? new Date(book.dateAcquired).toISOString().split('T')[0] : '';
-      const formattedCost = book.cost ? parseFloat(book.cost).toFixed(2) : '';
+      const formattedCost = typeof book.cost === 'number' ? book.cost.toFixed(2) : '';
 
       setFormData({
-        ...formData,
         ...book,
         code: `${book.code}-copy`,
         dateAcquired: dateAcquired,
         imageUrl: book.imageUrl || '',
-        copies: book.copies || 0,
         cost: formattedCost,
-        coverType: book.coverType || 'soft', // Use the book's cover type or default to 'soft'
-        condition: book.condition || 'good', // Use the book's condition or default to 'good'
+        invoiceCode: '', // Reset invoice code for the new copy
+        copies: 1, // Set to 1 for a new copy
       });
       setSelectedCategories(book.categories || []);
       setIsSearchMode(true);
@@ -412,6 +421,10 @@ const CreatePage: React.FC = () => {
         description: '',
         imageUrl: '',
         condition: 'good',
+        status: 'available',
+        company: '',
+        observations: '',
+        copies: 1, // Add this line
       });
       setSelectedCategories([]);
       setSelectedBook(null);
@@ -422,7 +435,9 @@ const CreatePage: React.FC = () => {
     }
   };
 
-  const isFieldEmpty = (field: string) => submitted && !formData[field];
+  const isFieldEmpty = (field: keyof FormData) => {
+    return submitted && !formData[field];
+  };
 
   const errorStyle: CSSProperties = {
     borderColor: '#e0b4b4',
@@ -565,6 +580,10 @@ const CreatePage: React.FC = () => {
       description: '',
       imageUrl: '',
       condition: 'good',
+      status: 'available',
+      company: '',
+      observations: '',
+      copies: 1, // Add this line
     });
     setSelectedCategories([]);
     setCostInput('');
@@ -690,7 +709,7 @@ const CreatePage: React.FC = () => {
                       ]}
                       placeholder={t('selectCoverType')}
                       value={formData.coverType}
-                      onChange={(_, data) => setFormData({ ...formData, coverType: data.value as string })}
+                      onChange={handleChange}
                       error={isFieldEmpty('coverType')}
                     />
                     <Form.Select
@@ -705,7 +724,7 @@ const CreatePage: React.FC = () => {
                       ]}
                       placeholder={t('selectCondition')}
                       value={formData.condition}
-                      onChange={(_, data) => setFormData({ ...formData, condition: data.value as 'good' | 'regular' | 'bad' })}
+                      onChange={handleChange}
                       error={isFieldEmpty('condition')}
                     />
                   </Form.Group>
