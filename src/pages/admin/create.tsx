@@ -63,6 +63,7 @@ const PlayfulSegment = styled(Segment)`
 
 const CreatePage: React.FC = () => {
   const { t } = useTranslation('common');
+  const [userCompany, setUserCompany] = useState<string | null>(null);
   const [type, setType] = useState<'book' | 'equipment'>('book');
   const [formData, setFormData] = useState<FormData>({
     invoiceCode: '',
@@ -82,7 +83,7 @@ const CreatePage: React.FC = () => {
     dateAcquired: new Date().toISOString().split('T')[0],
     observations: '',
     description: '',
-    copies: 1, // Add this line
+    copies: 1,
   });
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<Book[]>([]);
@@ -96,8 +97,6 @@ const CreatePage: React.FC = () => {
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [isEditableField, setIsEditableField] = useState<{[key: string]: boolean}>({});
   const [costInput, setCostInput] = useState('');
-  const [company, setCompany] = useState<string | null>(null);
-  const [userCompany, setUserCompany] = useState<string | null>(null);
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
   const [dropdownKey, setDropdownKey] = useState(0);
 
@@ -402,7 +401,7 @@ const CreatePage: React.FC = () => {
   const toggleMode = () => {
     setIsSearchMode(!isSearchMode);
     if (isSearchMode) {
-      setFormData({
+      setFormData(prevData => ({
         invoiceCode: '',
         code: '',
         title: '',
@@ -418,10 +417,10 @@ const CreatePage: React.FC = () => {
         imageUrl: '',
         condition: 'good',
         status: 'available',
-        company: '',
+        company: userCompany, // Use userCompany here
         observations: '',
-        copies: 1, // Add this line
-      });
+        copies: 1,
+      }));
       setSelectedCategories([]);
       setSelectedBook(null);
       setCostInput('');
@@ -577,9 +576,9 @@ const CreatePage: React.FC = () => {
       imageUrl: '',
       condition: 'good',
       status: 'available',
-      company: '',
+      company: userCompany || null,
       observations: '',
-      copies: 1, // Add this line
+      copies: 1,
     });
     setSelectedCategories([]);
     setCostInput('');
