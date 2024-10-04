@@ -28,7 +28,7 @@ interface FormData {
   status: string;
   condition: string;
   location: string;
-  company: string;
+  company: string | null;
   code: string;
   cost: string;
   dateAcquired: string;
@@ -77,7 +77,7 @@ const CreatePage: React.FC = () => {
     status: 'available',
     condition: 'good',
     location: '',
-    company: '',
+    company: null,
     cost: '',
     dateAcquired: new Date().toISOString().split('T')[0],
     observations: '',
@@ -106,15 +106,12 @@ const CreatePage: React.FC = () => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      try {
-        const decodedToken = jwtDecode(token) as { company: string };
-        setUserCompany(decodedToken.company);
-      } catch (error) {
-        console.error('Error decoding token:', error);
-        toast(t('errorDecodingToken'), { type: 'error' });
-      }
-    } else {
-      toast(t('noTokenFound'), { type: 'error' });
+      const decodedToken = jwtDecode(token) as { company: string };
+      setUserCompany(decodedToken.company);
+      setFormData(prevData => ({
+        ...prevData,
+        company: decodedToken.company,
+      }));
     }
   }, []);
 
@@ -127,6 +124,15 @@ const CreatePage: React.FC = () => {
       fetchCategories();
     }
   }, [isMounted]);
+
+  useEffect(() => {
+    if (userCompany) {
+      setFormData(prevData => ({
+        ...prevData,
+        company: userCompany,
+      }));
+    }
+  }, [userCompany]);
 
   const fetchCategories = async () => {
     try {
@@ -149,29 +155,11 @@ const CreatePage: React.FC = () => {
     });
   };
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | React.SyntheticEvent<HTMLElement, Event>,
-    data?: InputOnChangeData | TextAreaProps | DropdownProps
-  ) => {
-    let name: string;
-    let value: string | number | boolean | (string | number | boolean)[] | undefined;
-
-    if ('name' in e.target) {
-      // This is a standard DOM event
-      name = e.target.name;
-      value = (e.target as HTMLInputElement | HTMLTextAreaElement).value;
-    } else if (data) {
-      // This is a Semantic UI React event
-      name = (data as DropdownProps).name || '';
-      value = (data as DropdownProps).value;
-    } else {
-      // If we can't handle this event, just return
-      return;
-    }
-
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | DropdownProps) => {
+    const { name, value } = e.target as HTMLInputElement;
+    setFormData(prevData => ({
+      ...prevData,
+      [name]: value,
     }));
   };
 
@@ -220,6 +208,8 @@ const CreatePage: React.FC = () => {
     return {
       ...formData,
       cost: parseFloat(formData.cost) || 0,
+      company: formData.company || userCompany || '',
+      categories: selectedCategories,
       // Add any other necessary conversions here
     };
   };
@@ -228,7 +218,10 @@ const CreatePage: React.FC = () => {
     e.preventDefault();
     setSubmitted(true);
 
-    const requiredFields: (keyof FormData)[] = ['invoiceCode', 'title', 'author', 'editorial', 'edition', 'categories', 'coverType', 'location', 'cost', 'dateAcquired'];
+    const requiredFields: (keyof FormData)[] = [
+      'invoiceCode', 'title', 'author', 'editorial', 'edition', 
+      'categories', 'coverType', 'location', 'cost', 'dateAcquired', 'company'
+    ];
     const emptyFields = requiredFields.filter(field => !formData[field]);
 
     if (emptyFields.length > 0) {
@@ -237,7 +230,10 @@ const CreatePage: React.FC = () => {
     }
 
     try {
-      const bookData = convertFormDataToBook(formData);
+      const bookData = convertFormDataToBook({
+        ...formData,
+        company: userCompany || '',
+      });
       const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books`, bookData);
       if (response.status === 201) {
         toast(t('bookCreatedSuccess'), { type: 'success' });
@@ -250,16 +246,16 @@ const CreatePage: React.FC = () => {
           edition: '',
           categories: [],
           coverType: 'soft',
+          imageUrl: '',
+          status: 'available',
+          condition: 'good',
           location: '',
           cost: '',
           dateAcquired: new Date().toISOString().split('T')[0],
           description: '',
-          imageUrl: '',
-          condition: 'good',
-          status: 'available',
-          company: '',
+          company: userCompany || '', // Ensure company is always a string
           observations: '',
-          copies: 1, // Add this line
+          copies: 1,
         });
         setSearchTerm('');
         setSearchResults([]);
@@ -326,8 +322,8 @@ const CreatePage: React.FC = () => {
         dateAcquired: dateAcquired,
         imageUrl: book.imageUrl || '',
         cost: formattedCost,
-        invoiceCode: '', // Reset invoice code for the new copy
-        copies: 1, // Set to 1 for a new copy
+        invoiceCode: book.invoiceCode || '',
+        copies: 1,
       });
       setSelectedCategories(book.categories || []);
       setIsSearchMode(true);
@@ -803,6 +799,13 @@ const CreatePage: React.FC = () => {
                   onChange={handleChange}
                 />
               )}
+              <Form.Input
+                fluid
+                label={t('company')}
+                name="company"
+                value={formData.company}
+                disabled
+              />
               <Button primary type="submit" style={{ marginTop: '1rem' }} disabled={isSearchMode}>
                 {t('submit')}
               </Button>

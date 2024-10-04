@@ -24,10 +24,11 @@ export interface BookCopy {
     status: string;
     condition: string;
     location: string;
-    company: string;
+    company: string | null; // Change this line
     code: string;
     cost: number;
     dateAcquired: string;
     observations: string;
     description: string; // Add this line
+    invoiceCode: string;
   }
