@@ -130,21 +130,24 @@ const IndexPage: React.FC = () => {
   const router = useRouter();
 
   useEffect(() => {
+    checkAuthStatus();
+    fetchBooks();
+    fetchCategories();
+    fetchCompanies();
+  }, [currentPage, searchTerm, selectedCategories, selectedCompany, isLoggedIn]);
+
+  const checkAuthStatus = () => {
     const token = localStorage.getItem('token');
     if (token) {
       const decodedToken = jwtDecode(token) as { company: string };
       setUserCompany(decodedToken.company);
       setSelectedCompany(decodedToken.company);
+      setIsLoggedIn(true);
+    } else {
+      setIsLoggedIn(false);
+      setUserCompany(null);
+      setSelectedCompany('all');
     }
-    fetchBooks();
-    checkAuthStatus();
-    fetchCategories();
-    fetchCompanies();
-  }, [currentPage, searchTerm, selectedCategories, selectedCompany]);
-
-  const checkAuthStatus = () => {
-    const token = localStorage.getItem('token');
-    setIsLoggedIn(!!token);
   };
 
   const fetchCategories = async () => {
@@ -175,7 +178,7 @@ const IndexPage: React.FC = () => {
           page: currentPage, 
           search: searchTerm, 
           categories: selectedCategories.join(','),
-          company: selectedCompany === 'all' ? undefined : selectedCompany
+          company: isLoggedIn ? userCompany : (selectedCompany === 'all' ? undefined : selectedCompany)
         },
       });
       setBooks(response.data.books);
