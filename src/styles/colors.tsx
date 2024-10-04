@@ -5,4 +5,6 @@ export const colors = {
   background: '#F7FFF7',  // Light Mint
   text: '#2F4858',        // Dark Blue-Gray
   lightText: '#6C757D',   // Light Gray
+  danger: '#db2828',
+  dangerHover: '#c82121',
 };
