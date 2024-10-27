@@ -124,5 +124,9 @@
     "confirmDeleteBook": "¿Estás seguro de que quieres eliminar este libro?",
     "confirmDeleteCopy": "¿Estás seguro de que quieres eliminar esta copia?",
     "copyNotFound": "Copia no encontrada. Los datos pueden estar desactualizados.",
-    "lastCopyDeletedSuccess": "Última copia eliminada con éxito. El libro ha sido eliminado."
+    "lastCopyDeletedSuccess": "Última copia eliminada con éxito. El libro ha sido eliminado.",
+    "futureDateNotAllowed": "No se permiten fechas futuras",
+    "maxDateToday": "La fecha máxima permitida es hoy",
+    "invalidDate": "Fecha seleccionada inválida",
+    "dateValidationError": "Por favor seleccione una fecha igual o anterior a hoy"
 }

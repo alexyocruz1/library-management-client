@@ -19,6 +19,19 @@ import { Book } from '../types/book';
 const BookImage: React.FC<{ src: string | null; alt: string }> = ({ src, alt }) => {
   const [imgSrc, setImgSrc] = useState<string | null>(src);
 
+  useEffect(() => {
+    // Validate if the URL is a valid image URL
+    const isValidImageUrl = (url: string) => {
+      return url.match(/\.(jpeg|jpg|gif|png)$/) != null;
+    };
+
+    if (src && !isValidImageUrl(src)) {
+      setImgSrc(null);
+    } else {
+      setImgSrc(src);
+    }
+  }, [src]);
+
   if (!imgSrc) {
     return (
       <div style={{
@@ -127,21 +140,18 @@ const IndexPage: React.FC = () => {
   const [userCompany, setUserCompany] = useState<string | null>(null);
   const [companies, setCompanies] = useState<string[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<string>('all');
-  const [isChangingCompany, setIsChangingCompany] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    checkAuthStatus();
-    fetchBooks();
-    fetchCategories();
-    fetchCompanies();
-  }, [currentPage, searchTerm, selectedCategories, selectedCompany, isLoggedIn]);
-
-  useEffect(() => {
-    if (isChangingCompany) {
-      fetchBooks().then(() => setIsChangingCompany(false));
-    }
-  }, [selectedCompany]);
+    const initializePage = async () => {
+      await checkAuthStatus();
+      await fetchCategories();
+      await fetchCompanies();
+      await fetchBooks(1); // Add explicit initial fetch
+    };
+    
+    initializePage();
+  }, []); // Only run once on mount
 
   useEffect(() => {
     // Get user's company from token when component mounts
@@ -166,8 +176,6 @@ const IndexPage: React.FC = () => {
     if (token) {
       const decodedToken = jwtDecode(token) as { company: string };
       setUserCompany(decodedToken.company);
-      setIsChangingCompany(true);
-      setSelectedCompany(decodedToken.company);
       setIsLoggedIn(true);
     } else {
       setIsLoggedIn(false);
@@ -200,17 +208,19 @@ const IndexPage: React.FC = () => {
     setError(null);
     try {
       if (!selectedCompany) {
+        setLoading(false);
         toast.error(t('companyNotFound'));
         return;
       }
 
       const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books`, {
+        `${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books`,
+        {
           params: {
             page: pageNumber,
             search: searchTerm,
-            categories: selectedCategories.join(','),
-            company: selectedCompany
+            categories: selectedCategories.length > 0 ? selectedCategories.join(',') : undefined,
+            company: selectedCompany === 'all' ? undefined : selectedCompany
           }
         }
       );
@@ -218,24 +228,26 @@ const IndexPage: React.FC = () => {
       setBooks(response.data.books);
       setTotalPages(response.data.totalPages);
       setCurrentPage(response.data.currentPage);
+      setLoading(false);
     } catch (error) {
       console.error('Error fetching books:', error);
       setError(t('errorFetchingBooks'));
-    } finally {
       setLoading(false);
+      setBooks([]);
+      setTotalPages(1);
     }
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
-    setCurrentPage(1);
+    // The useEffect will handle the search
   };
 
   const handleCategoryChange = (e: React.SyntheticEvent<HTMLElement, Event>, data: DropdownProps) => {
     const newCategory = data.value as string;
     if (newCategory && !selectedCategories.includes(newCategory)) {
       setSelectedCategories([...selectedCategories, newCategory]);
-      setCurrentPage(1);
+      // The useEffect will handle the filter
     }
   };
 
@@ -288,9 +300,9 @@ const IndexPage: React.FC = () => {
   };
 
   const handleCompanyChange = (e: React.SyntheticEvent<HTMLElement, Event>, data: DropdownProps) => {
-    setIsChangingCompany(true);
     setSelectedCompany(data.value as string);
     setCurrentPage(1);
+    // Remove isChangingCompany state as it's not needed
   };
 
   const companyOptions = [
@@ -348,7 +360,8 @@ const IndexPage: React.FC = () => {
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       if (selectedCompany) {
-        fetchBooks(1); // Reset to first page when searching
+        setCurrentPage(1);
+        fetchBooks(1);
       }
     }, 300);
 
@@ -423,7 +436,7 @@ const IndexPage: React.FC = () => {
           )}
         </Segment>
 
-        {(loading || isChangingCompany) ? (
+        {loading ? (
           <Loader active inline="centered" />
         ) : error ? (
           <Message negative>{error}</Message>

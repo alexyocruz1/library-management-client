@@ -61,6 +61,11 @@ const PlayfulSegment = styled(Segment)`
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
 `;
 
+// Add this helper function at the top of the file
+const getTodayString = () => {
+  return new Date().toISOString().split('T')[0];
+};
+
 const CreatePage: React.FC = () => {
   const { t } = useTranslation('common');
   const [userCompany, setUserCompany] = useState<string | null>(null);
@@ -158,11 +163,41 @@ const CreatePage: React.FC = () => {
     });
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | DropdownProps) => {
-    const { name, value } = e.target as HTMLInputElement;
-    setFormData(prevData => ({
-      ...prevData,
-      [name]: value,
+  // Regular input change handler
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+
+    if (name === 'dateAcquired') {
+      const selectedDate = new Date(value);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (selectedDate > today) {
+        toast.error(t('futureDateNotAllowed'));
+        return;
+      }
+
+      if (isNaN(selectedDate.getTime())) {
+        toast.error(t('invalidDate'));
+        return;
+      }
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Dropdown change handler
+  const handleDropdownChange = (
+    event: React.SyntheticEvent<HTMLElement, Event>,
+    data: DropdownProps
+  ) => {
+    const { name, value } = data;
+    setFormData(prev => ({
+      ...prev,
+      [name as string]: value
     }));
   };
 
@@ -477,7 +512,7 @@ const CreatePage: React.FC = () => {
             type="text"
             name="invoiceCode"
             value={formData.invoiceCode}
-            onChange={handleChange}
+            onChange={handleInputChange}
             placeholder={t('enterInvoiceCode')}
             style={isFieldEmpty('invoiceCode') ? errorStyle : {}}
           />
@@ -487,7 +522,7 @@ const CreatePage: React.FC = () => {
           <select
             name="coverType"
             value={formData.coverType}
-            onChange={handleChange}
+            onChange={handleSelectChange}
             required
           >
             <option value="">{t('selectCoverType')}</option>
@@ -501,7 +536,7 @@ const CreatePage: React.FC = () => {
             type="text"
             name="location"
             value={formData.location}
-            onChange={handleChange}
+            onChange={handleInputChange}
             placeholder={t('enterLocation')}
             style={isFieldEmpty('location') ? errorStyle : {}}
           />
@@ -524,8 +559,9 @@ const CreatePage: React.FC = () => {
             type="date"
             name="dateAcquired"
             value={formData.dateAcquired}
-            onChange={handleChange}
+            onChange={handleInputChange}
             style={isFieldEmpty('dateAcquired') ? errorStyle : {}}
+            max={getTodayString()} // Add max attribute
           />
         </div>
         <div className="field">
@@ -533,7 +569,7 @@ const CreatePage: React.FC = () => {
           <select
             name="condition"
             value={formData.condition}
-            onChange={(e) => setFormData({ ...formData, condition: e.target.value as 'good' | 'regular' | 'bad' })}
+            onChange={handleSelectChange}
             style={isFieldEmpty('condition') ? errorStyle : {}}
           >
             <option value="good">{t('good')}</option>
@@ -580,6 +616,15 @@ const CreatePage: React.FC = () => {
         </Button>
       </form>
     );
+  };
+
+  // Add this new handler for native select elements
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   return (
@@ -634,7 +679,7 @@ const CreatePage: React.FC = () => {
                 label={t('invoiceCode')}
                 name="invoiceCode"
                 value={formData.invoiceCode}
-                onChange={handleChange}
+                onChange={handleInputChange}
                 placeholder={t('enterInvoiceCode')}
                 error={isFieldEmpty('invoiceCode')}
               />
@@ -644,7 +689,7 @@ const CreatePage: React.FC = () => {
                     label={t('title')}
                     name="title"
                     value={formData.title}
-                    onChange={handleChange}
+                    onChange={handleInputChange}
                     placeholder={t('enterTitle')}
                     error={isFieldEmpty('title')}
                     disabled={isSearchMode}
@@ -653,7 +698,7 @@ const CreatePage: React.FC = () => {
                     label={t('author')}
                     name="author"
                     value={formData.author}
-                    onChange={handleChange}
+                    onChange={handleInputChange}
                     placeholder={t('enterAuthor')}
                     error={isFieldEmpty('author')}
                     disabled={isSearchMode}
@@ -662,7 +707,7 @@ const CreatePage: React.FC = () => {
                     label={t('editorial')}
                     name="editorial"
                     value={formData.editorial}
-                    onChange={handleChange}
+                    onChange={handleInputChange}
                     placeholder={t('enterEditorial')}
                     error={isFieldEmpty('editorial')}
                     disabled={isSearchMode}
@@ -673,7 +718,7 @@ const CreatePage: React.FC = () => {
                       label={t('edition')}
                       name="edition"
                       value={formData.edition}
-                      onChange={handleChange}
+                      onChange={handleInputChange}
                       placeholder={t('enterEdition')}
                       error={isFieldEmpty('edition')}
                       disabled={isSearchMode}
@@ -688,7 +733,8 @@ const CreatePage: React.FC = () => {
                       ]}
                       placeholder={t('selectCoverType')}
                       value={formData.coverType}
-                      onChange={handleChange}
+                      onChange={handleDropdownChange}  // Changed from handleSelectChange
+                      required
                       error={isFieldEmpty('coverType')}
                     />
                     <Form.Select
@@ -703,7 +749,7 @@ const CreatePage: React.FC = () => {
                       ]}
                       placeholder={t('selectCondition')}
                       value={formData.condition}
-                      onChange={handleChange}
+                      onChange={handleDropdownChange}  // Changed from handleSelectChange
                       error={isFieldEmpty('condition')}
                     />
                   </Form.Group>
@@ -729,7 +775,7 @@ const CreatePage: React.FC = () => {
                       label={t('location')}
                       name="location"
                       value={formData.location}
-                      onChange={handleChange}
+                      onChange={handleInputChange}
                       placeholder={t('enterLocation')}
                       error={isFieldEmpty('location')}
                     />
@@ -750,8 +796,9 @@ const CreatePage: React.FC = () => {
                     type="date"
                     name="dateAcquired"
                     value={formData.dateAcquired}
-                    onChange={handleChange}
+                    onChange={handleInputChange}
                     error={isFieldEmpty('dateAcquired')}
+                    max={getTodayString()} // Add max attribute
                   />
 
                   <Form.Input
@@ -779,7 +826,7 @@ const CreatePage: React.FC = () => {
                   label={t('description')}
                   name="description"
                   value={formData.description}
-                  onChange={handleChange}
+                  onChange={handleInputChange}
                 />
               )}
               <Form.Input

@@ -124,5 +124,9 @@
     "confirmDeleteBook": "Are you sure you want to delete this book?",
     "confirmDeleteCopy": "Are you sure you want to delete this copy?",
     "copyNotFound": "Copy not found. The data may be outdated.",
-    "lastCopyDeletedSuccess": "Last copy deleted successfully. The book has been removed."
+    "lastCopyDeletedSuccess": "Last copy deleted successfully. The book has been removed.",
+    "futureDateNotAllowed": "Future dates are not allowed",
+    "maxDateToday": "Maximum date allowed is today",
+    "invalidDate": "Invalid date selected",
+    "dateValidationError": "Please select a date on or before today"
 }
