@@ -142,16 +142,41 @@ const IndexPage: React.FC = () => {
   const [selectedCompany, setSelectedCompany] = useState<string>('all');
   const router = useRouter();
 
+  // Add a new state to track initialization
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Modify the initialization useEffect
   useEffect(() => {
     const initializePage = async () => {
-      await checkAuthStatus();
-      await fetchCategories();
-      await fetchCompanies();
-      await fetchBooks(1); // Add explicit initial fetch
+      try {
+        const token = localStorage.getItem('token');
+        if (token) {
+          const decodedToken = jwtDecode(token) as { company: string };
+          if (decodedToken.company) {
+            setIsLoggedIn(true);
+            setUserCompany(decodedToken.company);
+            setSelectedCompany(decodedToken.company);
+            await Promise.all([
+              fetchCategories(),
+              fetchCompanies()
+            ]);
+            await fetchBooks(1);
+          } else {
+            toast.error(t('companyNotFound'));
+          }
+        } else {
+          setSelectedCompany('all');
+        }
+      } catch (error) {
+        console.error('Error during initialization:', error);
+        toast.error(t('errorInitializing'));
+      } finally {
+        setIsInitialized(true);
+      }
     };
     
     initializePage();
-  }, []); // Only run once on mount
+  }, []);
 
   useEffect(() => {
     // Get user's company from token when component mounts
@@ -204,6 +229,8 @@ const IndexPage: React.FC = () => {
   };
 
   const fetchBooks = async (pageNumber: number = currentPage) => {
+    if (!isInitialized) return; // Don't fetch if not initialized
+    
     setLoading(true);
     setError(null);
     try {
@@ -356,8 +383,10 @@ const IndexPage: React.FC = () => {
     fetchBooks(newPage);
   };
 
-  // Update search effect
+  // Update search effect to respect initialization
   useEffect(() => {
+    if (!isInitialized) return; // Don't run if not initialized
+
     const delayDebounceFn = setTimeout(() => {
       if (selectedCompany) {
         setCurrentPage(1);
@@ -366,7 +395,7 @@ const IndexPage: React.FC = () => {
     }, 300);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm, selectedCategories, selectedCompany]);
+  }, [searchTerm, selectedCategories, selectedCompany, isInitialized]);
 
   return (
     <div style={{ minHeight: '100vh', paddingBottom: '2em' }}>
