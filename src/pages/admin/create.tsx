@@ -212,8 +212,21 @@ const CreatePage: React.FC = () => {
       ...formData,
       cost: parseFloat(formData.cost) || 0,
       company: formData.company || userCompany || '',
-      categories: selectedCategories,
-      // Add any other necessary conversions here
+      groupId: crypto.randomUUID(), // Add this line to generate a unique groupId
+      categories: formData.categories || [],
+      invoiceCode: formData.invoiceCode || '',
+      title: formData.title || '',
+      author: formData.author || '',
+      editorial: formData.editorial || '',
+      edition: formData.edition || '',
+      coverType: formData.coverType || '',
+      imageUrl: formData.imageUrl || '',
+      status: formData.status || 'available',
+      condition: formData.condition || 'good',
+      location: formData.location || '',
+      dateAcquired: formData.dateAcquired || new Date().toISOString(),
+      observations: formData.observations || '',
+      description: formData.description || '',
     };
   };
 
