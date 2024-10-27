@@ -122,5 +122,7 @@
     "copyDeleteError": "Error al eliminar la copia. Por favor, inténtalo de nuevo.",
     "delete": "Eliminar",
     "confirmDeleteBook": "¿Estás seguro de que quieres eliminar este libro?",
-    "confirmDeleteCopy": "¿Estás seguro de que quieres eliminar esta copia?"
+    "confirmDeleteCopy": "¿Estás seguro de que quieres eliminar esta copia?",
+    "copyNotFound": "Copia no encontrada. Los datos pueden estar desactualizados.",
+    "lastCopyDeletedSuccess": "Última copia eliminada con éxito. El libro ha sido eliminado."
 }

@@ -8,6 +8,7 @@ export interface BookCopy {
     status: string;
     condition: string;
     observations: string;
+    groupId: string;
   }
   
   export interface Book {
@@ -31,4 +32,5 @@ export interface BookCopy {
     observations: string;
     description: string; // Add this line
     invoiceCode: string;
+    groupId: string;
   }

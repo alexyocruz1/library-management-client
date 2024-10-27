@@ -143,6 +143,24 @@ const IndexPage: React.FC = () => {
     }
   }, [selectedCompany]);
 
+  useEffect(() => {
+    // Get user's company from token when component mounts
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const decodedToken = jwtDecode(token) as { company: string };
+        if (decodedToken.company) {
+          setSelectedCompany(decodedToken.company);
+        } else {
+          toast.error(t('companyNotFound'));
+        }
+      } catch (error) {
+        console.error('Error decoding token:', error);
+        toast.error(t('errorDecodingToken'));
+      }
+    }
+  }, []);
+
   const checkAuthStatus = () => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -177,25 +195,32 @@ const IndexPage: React.FC = () => {
     }
   };
 
-  const fetchBooks = async () => {
+  const fetchBooks = async (pageNumber: number = currentPage) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books`, {
-        params: { 
-          page: currentPage, 
-          search: searchTerm, 
-          categories: selectedCategories.join(','),
-          company: isLoggedIn ? userCompany : (selectedCompany === 'all' ? undefined : selectedCompany)
-        },
-      });
+      if (!selectedCompany) {
+        toast.error(t('companyNotFound'));
+        return;
+      }
+
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books`, {
+          params: {
+            page: pageNumber,
+            search: searchTerm,
+            categories: selectedCategories.join(','),
+            company: selectedCompany
+          }
+        }
+      );
+      
       setBooks(response.data.books);
       setTotalPages(response.data.totalPages);
+      setCurrentPage(response.data.currentPage);
     } catch (error) {
+      console.error('Error fetching books:', error);
       setError(t('errorFetchingBooks'));
-      toast.error(t('errorFetchingBooks'));
-      setBooks([]);
-      setTotalPages(1);
     } finally {
       setLoading(false);
     }
@@ -218,10 +243,6 @@ const IndexPage: React.FC = () => {
     setSelectedCategories(selectedCategories.filter(cat => cat !== category));
     setAvailableCategories([...availableCategories, category].sort());
     setCurrentPage(1);
-  };
-
-  const handlePageChange = (event: React.MouseEvent<HTMLAnchorElement>, data: PaginationProps) => {
-    setCurrentPage(data.activePage as number);
   };
 
   const renderPagination = () => {
@@ -257,12 +278,12 @@ const IndexPage: React.FC = () => {
 
   const handleBookClick = async (book: Book) => {
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books/${book._id}`);
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books/group/${book.groupId}`);
       setSelectedBook(response.data);
       setIsModalOpen(true);
     } catch (error) {
       console.error('Error fetching book details:', error);
-      toast.error(t('errorFetchingBookDetails'));
+      toast.error(t('errorFetchingBooks'));
     }
   };
 
@@ -277,19 +298,62 @@ const IndexPage: React.FC = () => {
     ...companies.map(company => ({ key: company, text: company, value: company }))
   ];
 
+  // Add this function to handle book updates
   const handleBookUpdate = (updatedBook: Book | null) => {
-    if (updatedBook === null) {
-      // Book was deleted, remove it from the list
-      setBooks(prevBooks => prevBooks.filter(book => book._id !== selectedBook?._id));
-      setSelectedBook(null);
+    if (!updatedBook) {
+      // Book was completely deleted, remove it from the list
+      setBooks(prevBooks => prevBooks.filter(book => book.groupId !== selectedBook?.groupId));
     } else {
-      // Book was updated, update it in the list
-      setBooks(prevBooks => prevBooks.map(book => 
-        book._id === updatedBook._id ? updatedBook : book
-      ));
-      setSelectedBook(updatedBook);
+      // Update the book in the list
+      setBooks(prevBooks => 
+        prevBooks.map(book => 
+          book.groupId === updatedBook.groupId 
+            ? { ...book, copiesCount: updatedBook.copiesCount }
+            : book
+        )
+      );
     }
+    setSelectedBook(updatedBook);
   };
+
+  // Update useEffect to handle initial load
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const decodedToken = jwtDecode(token) as { company: string };
+        if (decodedToken.company) {
+          setSelectedCompany(decodedToken.company);
+          fetchBooks(1); // Fetch first page after setting company
+        } else {
+          toast.error(t('companyNotFound'));
+        }
+      } catch (error) {
+        console.error('Error decoding token:', error);
+        toast.error(t('errorDecodingToken'));
+      }
+    } else {
+      toast.error(t('noTokenFound'));
+    }
+  }, []);
+
+  // Update the page change handler
+  const handlePageChange = (event: React.MouseEvent<HTMLAnchorElement>, data: PaginationProps) => {
+    const newPage = data.activePage as number;
+    setCurrentPage(newPage);
+    fetchBooks(newPage);
+  };
+
+  // Update search effect
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      if (selectedCompany) {
+        fetchBooks(1); // Reset to first page when searching
+      }
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm, selectedCategories, selectedCompany]);
 
   return (
     <div style={{ minHeight: '100vh', paddingBottom: '2em' }}>

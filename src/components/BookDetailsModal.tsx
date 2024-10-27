@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Modal, Button, List, Grid, Icon, Label, Segment, Tab, Pagination, Header, Confirm } from 'semantic-ui-react';
+import { Modal, Button, List, Grid, Icon, Label, Segment, Tab, Pagination, Header, Confirm, TabProps } from 'semantic-ui-react';
 import { useTranslation } from 'next-i18next';
 import Image from 'next/image';
 import styled from 'styled-components';
@@ -50,9 +50,19 @@ interface BookDetailsModalProps {
 
 const PlayfulModal = styled(Modal)`
   &.ui.modal {
-    width: 95%;
-    max-width: 1200px;
-    margin: 0 auto;
+    display: flex !important;
+    flex-direction: column;
+    height: 60vh !important;
+    max-height: 60vh !important;
+    margin: 20vh auto !important; // Centers the modal vertically
+    border-radius: 15px !important;
+    
+    @media (max-width: 767px) {
+      height: 90vh !important; // Reduced from 100vh
+      max-height: 90vh !important; // Reduced from 100vh
+      margin: 5vh auto !important; // Added some margin on mobile
+      border-radius: 15px !important;
+    }
   }
 `;
 
@@ -63,14 +73,19 @@ const PlayfulHeader = styled(Modal.Header)`
 `;
 
 const PlayfulContent = styled(Modal.Content)`
-  background-color: ${colors.background}F0 !important;
-  height: 70vh !important; // Set a fixed height, adjust as needed
-  overflow-y: hidden !important; // Hide overflow on the modal content
+  flex: 1;
+  overflow-y: auto !important;
+  padding: 0.6rem !important; // Reduced padding
+  
+  @media (max-width: 767px) {
+    padding: 0.4rem !important;
+  }
 `;
 
 const PlayfulSegment = styled(Segment)`
   border-radius: 15px !important;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+  padding: 0.6rem !important; // Reduced padding
 `;
 
 const PlayfulButton = styled(Button)`
@@ -86,8 +101,12 @@ const PlayfulButton = styled(Button)`
 `;
 
 const CopySegment = styled(PlayfulSegment)`
-  margin-bottom: 1rem !important;
-  padding: 1rem !important;
+  padding: 0.8rem !important;
+  margin-bottom: 0.8rem !important;
+  
+  &:last-child {
+    margin-bottom: 0 !important;
+  }
 `;
 
 const ResponsiveTab = styled(Tab)`
@@ -97,22 +116,37 @@ const ResponsiveTab = styled(Tab)`
 
   .ui.tabular.menu {
     flex-shrink: 0;
+    overflow-x: auto;
+    margin-bottom: 0 !important;
+    border-bottom: 1px solid rgba(34, 36, 38, 0.15) !important;
+    min-height: 42px !important; // Add fixed height
+    height: 42px !important; // Add fixed height
+    
+    .item {
+      height: 100% !important;
+      border-bottom: none !important;
+      &.active {
+        border-bottom: none !important;
+      }
+    }
   }
 
-  .ui.tab {
-    height: 100%;
-    overflow-y: hidden;
+  .ui.tab.segment {
+    flex: 1;
+    margin: 0;
+    border: none;
+    padding: 0.8rem 0;
+    overflow: hidden !important;
   }
 
   @media (max-width: 767px) {
     .ui.tabular.menu {
-      flex-direction: row;
-      flex-wrap: wrap;
-    }
-    .ui.tabular.menu .item {
-      width: 50%;
-      margin: 0;
-      border-radius: 0 !important;
+      flex-wrap: nowrap;
+      .item {
+        flex: 1;
+        min-width: max-content;
+        padding: 0.5em !important;
+      }
     }
   }
 `;
@@ -152,27 +186,35 @@ const DeleteButton = styled(Button)`
   }
 `;
 
-import { TabProps } from 'semantic-ui-react';
-
-const StyledTabPane = styled(Tab.Pane)`
-  min-height: 400px; // Adjust this value as needed
-  max-height: 600px; // Adjust this value as needed
-  overflow-y: auto;
-`;
-
 const InfoItem = styled(List.Item)`
   padding: 1rem 0;
   border-bottom: 1px solid rgba(34, 36, 38, 0.1);
   
   &:last-child {
     border-bottom: none;
+    padding-bottom: 0;
   }
 `;
 
 const ScrollableTabContent = styled.div`
-  height: calc(100%); // Subtract the height of the tab menu
-  overflow-y: auto;
-  padding: 1rem;
+  padding: 0;
+  overflow: hidden; // Change to hidden
+  height: auto; // Add this
+  
+  @media (max-width: 767px) {
+    padding: 0;
+  }
+`;
+
+const ModalGrid = styled(Grid)`
+  height: 100%;
+  margin: 0 !important;
+  
+  @media (max-width: 767px) {
+    .column {
+      padding: 0.4rem !important;
+    }
+  }
 `;
 
 const BookDetailsModal: React.FC<BookDetailsModalProps> = ({ book, open, onClose, onBookUpdate }) => {
@@ -209,22 +251,33 @@ const BookDetailsModal: React.FC<BookDetailsModalProps> = ({ book, open, onClose
         copyId: copyToDelete._id
       });
 
-      if (response.data.copiesCount) {
-        const updatedBook: Book = {
-          ...book,
-          copies: book.copies.filter(copy => copy._id !== copyToDelete._id),
-          copiesCount: response.data.copiesCount
-        };
-        onBookUpdate(updatedBook);
-        toast.success(t('copyDeletedSuccess'));
-      } else {
+      if (response.data.copiesCount === 0) {
+        // All copies were deleted
         onClose();
-        onBookUpdate(null); // All copies deleted, pass null
+        onBookUpdate(null);
         toast.success(t('lastCopyDeletedSuccess'));
+      } else {
+        try {
+          // Fetch updated book data using groupId
+          const updatedBookResponse = await axios.get(
+            `${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books/group/${book.groupId}`
+          );
+          onBookUpdate(updatedBookResponse.data);
+          toast.success(t('copyDeletedSuccess'));
+        } catch (error) {
+          console.error('Error fetching updated book:', error);
+          toast.error(t('errorFetchingBooks'));
+          onClose();
+        }
       }
     } catch (error) {
       console.error('Error deleting copy:', error);
-      toast.error(t('copyDeleteError'));
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        toast.error(t('copyNotFound'));
+        onClose();
+      } else {
+        toast.error(t('copyDeleteError'));
+      }
     } finally {
       setDeleteCopyConfirmOpen(false);
       setCopyToDelete(null);
@@ -412,14 +465,19 @@ const BookDetailsModal: React.FC<BookDetailsModalProps> = ({ book, open, onClose
         <Icon name="book" /> {book.title}
       </PlayfulHeader>
       <PlayfulContent>
-        <Grid stackable style={{ height: '100%' }}>
-          <Grid.Row style={{ height: '100%' }}>
-            <Grid.Column mobile={16} tablet={6} computer={5} style={{ height: '100%' }}>
-              <PlayfulSegment style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ flex: 1, position: 'relative' }}>
+        <ModalGrid stackable>
+          <Grid.Row>
+            <Grid.Column mobile={16} tablet={6} computer={5}>
+              <PlayfulSegment>
+                <div style={{ 
+                  position: 'relative', 
+                  width: '100%',
+                  height: '300px', // Fixed height instead of padding-bottom
+                  marginBottom: '1rem'
+                }}>
                   <BookImage src={book.imageUrl || null} alt={book.title} />
                 </div>
-                <Label.Group size="large" style={{ marginTop: '1rem' }}>
+                <Label.Group size="large">
                   <Label basic>
                     <Icon name="copy" />
                     {t('copiesCount', { count: Array.isArray(book.copies) ? book.copies.length : 0 })}
@@ -427,7 +485,7 @@ const BookDetailsModal: React.FC<BookDetailsModalProps> = ({ book, open, onClose
                 </Label.Group>
               </PlayfulSegment>
             </Grid.Column>
-            <Grid.Column mobile={16} tablet={10} computer={11} style={{ height: '100%' }}>
+            <Grid.Column mobile={16} tablet={10} computer={11}>
               <ResponsiveTab 
                 panes={panes} 
                 activeIndex={activeTab}
@@ -435,7 +493,7 @@ const BookDetailsModal: React.FC<BookDetailsModalProps> = ({ book, open, onClose
               />
             </Grid.Column>
           </Grid.Row>
-        </Grid>
+        </ModalGrid>
       </PlayfulContent>
       <ModalActions>
         <PlayfulButton onClick={onClose}>
