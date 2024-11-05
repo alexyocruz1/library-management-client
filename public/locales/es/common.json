@@ -128,5 +128,18 @@
     "futureDateNotAllowed": "No se permiten fechas futuras",
     "maxDateToday": "La fecha máxima permitida es hoy",
     "invalidDate": "Fecha seleccionada inválida",
-    "dateValidationError": "Por favor seleccione una fecha igual o anterior a hoy"
+    "dateValidationError": "Por favor seleccione una fecha igual o anterior a hoy",
+    "edit": "Editar",
+    "editBook": "Editar Libro",
+    "selectCopy": "Seleccionar Copia",
+    "updateGeneral": "Actualizar Información General",
+    "updateCopy": "Actualizar Copia",
+    "bookUpdatedSuccess": "¡Libro actualizado con éxito!",
+    "bookUpdateError": "Error al actualizar el libro. Por favor, inténtalo de nuevo.",
+    "copyUpdatedSuccess": "¡Copia actualizada con éxito!",
+    "copyUpdateError": "Error al actualizar la copia. Por favor, inténtalo de nuevo.",
+    "bookPreview": "Vista Previa del Libro",
+    "noCopies": "No hay copias disponibles",
+    "selectCopyToEdit": "Por favor selecciona una copia de la lista para editar sus detalles",
+    "noCopySelected": "Ninguna Copia Seleccionada"
 }

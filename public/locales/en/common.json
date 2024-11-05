@@ -128,5 +128,18 @@
     "futureDateNotAllowed": "Future dates are not allowed",
     "maxDateToday": "Maximum date allowed is today",
     "invalidDate": "Invalid date selected",
-    "dateValidationError": "Please select a date on or before today"
+    "dateValidationError": "Please select a date on or before today",
+    "edit": "Edit",
+    "editBook": "Edit Book",
+    "selectCopy": "Select Copy",
+    "updateGeneral": "Update General Info",
+    "updateCopy": "Update Copy",
+    "bookUpdatedSuccess": "Book updated successfully!",
+    "bookUpdateError": "Error updating book. Please try again.",
+    "copyUpdatedSuccess": "Copy updated successfully!",
+    "copyUpdateError": "Error updating copy. Please try again.",
+    "bookPreview": "Book Preview",
+    "noCopies": "No copies available",
+    "selectCopyToEdit": "Please select a copy from the list to edit its details",
+    "noCopySelected": "No Copy Selected"
 }

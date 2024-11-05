@@ -7,6 +7,7 @@ import { colors } from '../styles/colors';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { Book, BookCopy } from '../types/book';  // Adjust the path if necessary
+import EditBookModal from './EditBookModal';
 
 const BookImage: React.FC<{ src: string | null; alt: string }> = ({ src, alt }) => {
   const [imgSrc, setImgSrc] = React.useState<string | null>(src);
@@ -226,6 +227,7 @@ const BookDetailsModal: React.FC<BookDetailsModalProps> = ({ book, open, onClose
   const [deleteCopyConfirmOpen, setDeleteCopyConfirmOpen] = useState(false);
   const [copyToDelete, setCopyToDelete] = useState<BookCopy | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const handleDeleteBook = async () => {
     setIsDeleting(true);
@@ -460,63 +462,78 @@ const BookDetailsModal: React.FC<BookDetailsModalProps> = ({ book, open, onClose
   ];
 
   return (
-    <PlayfulModal open={open} onClose={onClose} size="large">
-      <PlayfulHeader>
-        <Icon name="book" /> {book.title}
-      </PlayfulHeader>
-      <PlayfulContent>
-        <ModalGrid stackable>
-          <Grid.Row>
-            <Grid.Column mobile={16} tablet={6} computer={5}>
-              <PlayfulSegment>
-                <div style={{ 
-                  position: 'relative', 
-                  width: '100%',
-                  height: '300px', // Fixed height instead of padding-bottom
-                  marginBottom: '1rem'
-                }}>
-                  <BookImage src={book.imageUrl || null} alt={book.title} />
-                </div>
-                <Label.Group size="large">
-                  <Label basic>
-                    <Icon name="copy" />
-                    {t('copiesCount', { count: Array.isArray(book.copies) ? book.copies.length : 0 })}
-                  </Label>
-                </Label.Group>
-              </PlayfulSegment>
-            </Grid.Column>
-            <Grid.Column mobile={16} tablet={10} computer={11}>
-              <ResponsiveTab 
-                panes={panes} 
-                activeIndex={activeTab}
-                onTabChange={(_: React.SyntheticEvent, data: TabProps) => setActiveTab(data.activeIndex as number)}
-              />
-            </Grid.Column>
-          </Grid.Row>
-        </ModalGrid>
-      </PlayfulContent>
-      <ModalActions>
-        <PlayfulButton onClick={onClose}>
-          <Icon name='close' /> {t('close')}
-        </PlayfulButton>
-        <Button onClick={() => setDeleteConfirmOpen(true)} basic color="red" floated="right">
-          <Icon name="trash" />
-          {t('deleteBook')}
-        </Button>
-        <Confirm
-          open={deleteConfirmOpen}
-          onCancel={() => setDeleteConfirmOpen(false)}
-          onConfirm={handleDeleteBook}
-          content={t('confirmDeleteBook')}
-        />
-        <Confirm
-          open={deleteCopyConfirmOpen}
-          onCancel={() => setDeleteCopyConfirmOpen(false)}
-          onConfirm={handleDeleteCopy}
-          content={t('confirmDeleteCopy')}
-        />
-      </ModalActions>
-    </PlayfulModal>
+    <>
+      <PlayfulModal open={open} onClose={onClose} size="large">
+        <PlayfulHeader>
+          <Icon name="book" /> {book.title}
+        </PlayfulHeader>
+        <PlayfulContent>
+          <ModalGrid stackable>
+            <Grid.Row>
+              <Grid.Column mobile={16} tablet={6} computer={5}>
+                <PlayfulSegment>
+                  <div style={{ 
+                    position: 'relative', 
+                    width: '100%',
+                    height: '300px', // Fixed height instead of padding-bottom
+                    marginBottom: '1rem'
+                  }}>
+                    <BookImage src={book.imageUrl || null} alt={book.title} />
+                  </div>
+                  <Label.Group size="large">
+                    <Label basic>
+                      <Icon name="copy" />
+                      {t('copiesCount', { count: Array.isArray(book.copies) ? book.copies.length : 0 })}
+                    </Label>
+                  </Label.Group>
+                </PlayfulSegment>
+              </Grid.Column>
+              <Grid.Column mobile={16} tablet={10} computer={11}>
+                <ResponsiveTab 
+                  panes={panes} 
+                  activeIndex={activeTab}
+                  onTabChange={(_: React.SyntheticEvent, data: TabProps) => setActiveTab(data.activeIndex as number)}
+                />
+              </Grid.Column>
+            </Grid.Row>
+          </ModalGrid>
+        </PlayfulContent>
+        <ModalActions>
+          <PlayfulButton onClick={onClose}>
+            <Icon name='close' /> {t('close')}
+          </PlayfulButton>
+          <Button onClick={() => setDeleteConfirmOpen(true)} basic color="red" floated="right">
+            <Icon name="trash" />
+            {t('deleteBook')}
+          </Button>
+          <Confirm
+            open={deleteConfirmOpen}
+            onCancel={() => setDeleteConfirmOpen(false)}
+            onConfirm={handleDeleteBook}
+            content={t('confirmDeleteBook')}
+          />
+          <Confirm
+            open={deleteCopyConfirmOpen}
+            onCancel={() => setDeleteCopyConfirmOpen(false)}
+            onConfirm={handleDeleteCopy}
+            content={t('confirmDeleteCopy')}
+          />
+          <Button color="blue" onClick={() => setIsEditMode(true)}>
+            <Icon name="edit" /> {t('edit')}
+          </Button>
+        </ModalActions>
+      </PlayfulModal>
+
+      <EditBookModal
+        book={book}
+        open={isEditMode}
+        onClose={() => setIsEditMode(false)}
+        onBookUpdate={(updatedBook) => {
+          onBookUpdate(updatedBook);
+          setIsEditMode(false);
+        }}
+      />
+    </>
   );
 };
 
