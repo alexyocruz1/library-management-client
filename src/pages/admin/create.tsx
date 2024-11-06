@@ -17,7 +17,7 @@ import { jwtDecode } from 'jwt-decode'; // Change to named import
 import { Book } from '../../types/book';
 
 interface FormData {
-  invoiceCode: string;
+  _id: string;
   title: string;
   author: string;
   editorial: string;
@@ -28,13 +28,14 @@ interface FormData {
   status: string;
   condition: string;
   location: string;
-  company: string | null;
+  company: string;
   code: string;
   cost: string;
   dateAcquired: string;
   observations: string;
   description: string;
-  copies?: number;
+  invoiceCode: string;
+  copies: number;
 }
 
 const CreatableSelect = dynamic(
@@ -66,30 +67,34 @@ const getTodayString = () => {
   return new Date().toISOString().split('T')[0];
 };
 
+// Add this constant at the top of the file, after the interfaces
+const createInitialFormState = (userCompany: string = ''): FormData => ({
+  _id: '',
+  title: '',
+  author: '',
+  editorial: '',
+  edition: '',
+  categories: [],
+  coverType: 'soft',
+  imageUrl: '',
+  status: 'available',
+  condition: 'good',
+  location: '',
+  company: userCompany,
+  code: '',
+  cost: '',
+  dateAcquired: new Date().toISOString().split('T')[0],
+  observations: '',
+  description: '',  // Initialize with empty string
+  invoiceCode: '',
+  copies: 1
+});
+
 const CreatePage: React.FC = () => {
   const { t } = useTranslation('common');
   const [userCompany, setUserCompany] = useState<string | null>(null);
   const [type, setType] = useState<'book' | 'equipment'>('book');
-  const [formData, setFormData] = useState<FormData>({
-    invoiceCode: '',
-    code: '',
-    title: '',
-    author: '',
-    editorial: '',
-    edition: '',
-    categories: [],
-    coverType: 'soft',
-    imageUrl: '',
-    status: 'available',
-    condition: 'good',
-    location: '',
-    company: '',
-    cost: '',
-    dateAcquired: new Date().toISOString().split('T')[0],
-    observations: '',
-    description: '',
-    copies: 1,
-  });
+  const [formData, setFormData] = useState<FormData>(createInitialFormState());
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<Book[]>([]);
   const [submitted, setSubmitted] = useState(false);
@@ -110,16 +115,9 @@ const CreatePage: React.FC = () => {
     const token = localStorage.getItem('token');
     if (token) {
       const decodedToken = jwtDecode(token) as { company: string };
-      const company = decodedToken.company || 'Default Company'; // Provide a default value
+      const company = decodedToken.company || '';
       setUserCompany(company);
-      setFormData(prevData => ({
-        ...prevData,
-        company: company,
-      }));
-    } else {
-      // Handle case when there's no token
-      toast.error(t('noTokenFound'));
-      // Redirect to login or handle appropriately
+      setFormData(createInitialFormState(company));
     }
   }, []);
 
@@ -293,26 +291,7 @@ const CreatePage: React.FC = () => {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/books`, bookData);
       if (response.status === 201) {
         toast(t('bookCreatedSuccess'), { type: 'success' });
-        setFormData({
-          invoiceCode: '',
-          code: '',
-          title: '',
-          author: '',
-          editorial: '',
-          edition: '',
-          categories: [],
-          coverType: 'soft',
-          imageUrl: '',
-          status: 'available',
-          condition: 'good',
-          location: '',
-          cost: '',
-          dateAcquired: new Date().toISOString().split('T')[0],
-          description: '',
-          company: userCompany || '', // Ensure company is always a string
-          observations: '',
-          copies: 1,
-        });
+        setFormData(createInitialFormState(userCompany || ''));
         setSearchTerm('');
         setSearchResults([]);
         setSubmitted(false);
@@ -372,15 +351,29 @@ const CreatePage: React.FC = () => {
       const dateAcquired = book.dateAcquired ? new Date(book.dateAcquired).toISOString().split('T')[0] : '';
       const formattedCost = typeof book.cost === 'number' ? book.cost.toFixed(2) : '';
 
-      setFormData({
-        ...book,
-        code: `${book.code}-copy`,
-        dateAcquired: dateAcquired,
+      const newFormData: FormData = {
+        _id: book._id,
+        title: book.title,
+        author: book.author,
+        editorial: book.editorial,
+        edition: book.edition,
+        categories: book.categories,
+        coverType: book.coverType,
         imageUrl: book.imageUrl || '',
+        status: book.status,
+        condition: book.condition,
+        location: book.location,
+        company: book.company,
+        code: `${book.code}-copy`,
         cost: formattedCost,
+        dateAcquired: dateAcquired,
+        observations: book.observations,
+        description: book.description || '',
         invoiceCode: book.invoiceCode || '',
-        copies: 1,
-      });
+        copies: 1
+      };
+
+      setFormData(newFormData);
       setSelectedCategories(book.categories || []);
       setIsSearchMode(true);
       setIsEditableField({
@@ -463,26 +456,7 @@ const CreatePage: React.FC = () => {
   const toggleMode = () => {
     setIsSearchMode(!isSearchMode);
     if (isSearchMode) {
-      setFormData(prevData => ({
-        invoiceCode: '',
-        code: '',
-        title: '',
-        author: '',
-        editorial: '',
-        edition: '',
-        categories: [],
-        coverType: 'soft',
-        location: '',
-        cost: '',
-        dateAcquired: new Date().toISOString().split('T')[0],
-        description: '',
-        imageUrl: '',
-        condition: 'good',
-        status: 'available',
-        company: userCompany || prevData.company || '', // Use userCompany, fallback to previous value or empty string
-        observations: '',
-        copies: 1,
-      }));
+      setFormData(createInitialFormState(userCompany || ''));
       setSelectedCategories([]);
       setSelectedBook(null);
       setCostInput('');

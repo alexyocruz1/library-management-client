@@ -35,6 +35,7 @@
     "@eslint/js": "^9.9.1",
     "@types/jquery": "^3.5.30",
     "@types/jwt-decode": "^3.1.0",
+    "@types/lodash": "^4.17.13",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
