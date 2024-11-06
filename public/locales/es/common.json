@@ -176,5 +176,12 @@
     "startDate": "Fecha Inicial",
     "endDate": "Fecha Final",
     "by": "por",
-    "errorFetchingHistory": "Error al obtener el historial de préstamos"
+    "errorFetchingHistory": "Error al obtener el historial de préstamos",
+    "bookInfo": "Información del Libro",
+    "comments": "Comentarios",
+    "errorInvalidData": "Datos inválidos recibidos del servidor",
+    "returnCommentsPlaceholder": "Opcional: Agregar comentarios sobre la devolución (condición, daños, etc.)",
+    "noResults": "No se encontraron resultados",
+    "searchByBorrowerOrBook": "Buscar por nombre del prestatario, título del libro o código...",
+    "unknown": "Usuario desconocido"
 }

@@ -91,6 +91,95 @@ const getDefaultReturnDate = () => {
   return date.toISOString().split('T')[0];
 };
 
+const ResponsiveTable = styled(Table)`
+  /* Desktop styles (default) */
+  &.ui.table {
+    td {
+      vertical-align: middle;
+    }
+  }
+
+  /* Mobile and Tablet styles */
+  @media (max-width: 768px) {
+    &.ui.table {
+      border: none;
+      
+      thead {
+        display: none;
+      }
+
+      tr {
+        display: block;
+        border: 1px solid ${colors.primary};
+        border-radius: 8px;
+        margin-bottom: 1em;
+        padding: 0.5em;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+
+      td {
+        display: block;
+        border: none;
+        padding: 0.5em 0;
+        text-align: left;
+
+        &:before {
+          content: attr(data-label);
+          font-weight: bold;
+          display: inline-block;
+          width: 120px;
+        }
+
+        &:last-child {
+          text-align: right;
+          padding-top: 1em;
+          border-top: 1px solid rgba(0,0,0,0.1);
+        }
+      }
+    }
+  }
+`;
+
+const SearchContainer = styled.div`
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  width: 100%;
+  max-width: 600px;
+  
+  .ui.input {
+    width: 100%;
+  }
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    max-width: 100%;
+  }
+`;
+
+const StatusBadge = styled(Label)`
+  margin-left: 0.5rem !important;
+  vertical-align: middle !important;
+`;
+
+const TableContainer = styled.div`
+  position: relative;
+  margin-top: 1rem;
+`;
+
+const TableLoader = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1;
+`;
+
 const BorrowReturnPage = () => {
   const { t } = useTranslation('common');
   const [searchTerm, setSearchTerm] = useState('');
@@ -109,9 +198,9 @@ const BorrowReturnPage = () => {
   const router = useRouter();
   const [borrowerNames, setBorrowerNames] = useState<string[]>([]);
   const [isMounted, setIsMounted] = useState(false);
-  const [activeBorrows, setActiveBorrows] = useState<BorrowRecord[]>([]);
+  const [activeBorrows, setActiveBorrows] = useState<any[]>([]);
   const [borrowSearch, setBorrowSearch] = useState('');
-  const [selectedBorrow, setSelectedBorrow] = useState<BorrowRecord | null>(null);
+  const [selectedBorrow, setSelectedBorrow] = useState<any>(null);
   const [returnComments, setReturnComments] = useState('');
   const [returnLoading, setReturnLoading] = useState(false);
   const [historyRecords, setHistoryRecords] = useState<BorrowHistoryRecord[]>([]);
@@ -120,6 +209,7 @@ const BorrowReturnPage = () => {
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
   const [historyLoading, setHistoryLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [returnModalOpen, setReturnModalOpen] = useState(false);
 
   useEffect(() => {
     const initializePage = async () => {
@@ -265,12 +355,18 @@ const BorrowReturnPage = () => {
 
   const fetchBorrowerNames = async () => {
     try {
+      console.log('Fetching borrower names...');
       const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/borrow/borrower-names`);
+      console.log('Borrower names response:', response.data);
+      
       if (response.data.success) {
         setBorrowerNames(response.data.borrowerNames);
       }
-    } catch (error) {
-      console.error('Error fetching borrower names:', error);
+    } catch (error: any) {
+      console.error('Error fetching borrower names:', error.response || error);
+      if (error.response?.status !== 404) {
+        toast.error(t('errorFetchingBorrowerNames'));
+      }
     }
   };
 
@@ -355,13 +451,38 @@ const BorrowReturnPage = () => {
 
   const fetchActiveBorrows = async () => {
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/borrow/active`);
-      if (response.data.success) {
-        setActiveBorrows(response.data.records);
+      console.log('🔍 Starting fetchActiveBorrows...');
+      let url = `${process.env.NEXT_PUBLIC_BACKEND_URI}/api/borrow/active`;
+      
+      // Build query parameters
+      const params = new URLSearchParams();
+      if (borrowSearch) {
+        params.append('search', borrowSearch);
       }
-    } catch (error) {
-      console.error('Error fetching active borrows:', error);
-      toast.error(t('errorFetchingBorrows'));
+      
+      // Add query parameters to URL if they exist
+      const finalUrl = params.toString() ? `${url}?${params.toString()}` : url;
+      console.log('📡 Fetching from URL:', finalUrl);
+      
+      const response = await axios.get(finalUrl);
+      console.log('📦 Raw response:', response);
+      
+      if (response.data.success) {
+        if (Array.isArray(response.data.records)) {
+          console.log('✅ Setting active borrows:', response.data.records.length, 'records');
+          setActiveBorrows(response.data.records);
+        } else {
+          console.error('❌ Invalid records format:', response.data.records);
+          toast.error(t('errorInvalidData'));
+        }
+      } else {
+        console.warn('⚠️ Failed to fetch active borrows:', response.data.message);
+        toast.error(response.data.message || t('errorFetchingBorrows'));
+      }
+    } catch (error: any) {
+      console.error('❌ Error in fetchActiveBorrows:', error);
+      console.error('❌ Response:', error.response?.data);
+      toast.error(error.response?.data?.message || t('errorFetchingBorrows'));
     }
   };
 
@@ -377,11 +498,13 @@ const BorrowReturnPage = () => {
 
       if (response.data.success) {
         toast.success(t('returnSuccess'));
-        setSelectedBorrow(null);
         setReturnComments('');
+        setSelectedBorrow(null);
+        setReturnModalOpen(false);
         fetchActiveBorrows();
       }
     } catch (error) {
+      console.error('Error returning book:', error);
       toast.error(t('returnError'));
     } finally {
       setReturnLoading(false);
@@ -389,7 +512,9 @@ const BorrowReturnPage = () => {
   };
 
   useEffect(() => {
-    if (activeTab === 1) { // Return tab index
+    console.log('🔄 Tab changed to:', activeTab);
+    if (activeTab === 1) {
+      console.log('📚 Return tab selected, fetching active borrows...');
       fetchActiveBorrows();
     }
   }, [activeTab]);
@@ -397,19 +522,24 @@ const BorrowReturnPage = () => {
   const fetchBorrowHistory = async () => {
     try {
       setHistoryLoading(true);
-      let url = `${process.env.NEXT_PUBLIC_BACKEND_URI}/api/borrow/history?`;
+      let url = `${process.env.NEXT_PUBLIC_BACKEND_URI}/api/borrow/history`;
       
-      if (historySearch) {
-        url += `search=${encodeURIComponent(historySearch)}&`;
+      const params = new URLSearchParams();
+      
+      if (historySearch.trim()) {
+        params.append('search', historySearch.trim());
       }
       if (historyFilter !== 'all') {
-        url += `status=${historyFilter}&`;
+        params.append('status', historyFilter);
       }
       if (dateRange.start && dateRange.end) {
-        url += `startDate=${dateRange.start}&endDate=${dateRange.end}`;
+        params.append('startDate', dateRange.start);
+        params.append('endDate', dateRange.end);
       }
 
-      const response = await axios.get(url);
+      const finalUrl = params.toString() ? `${url}?${params.toString()}` : url;
+      
+      const response = await axios.get(finalUrl);
       if (response.data.success) {
         setHistoryRecords(response.data.records);
       }
@@ -425,7 +555,20 @@ const BorrowReturnPage = () => {
     if (activeTab === 2) { // History tab index
       fetchBorrowHistory();
     }
-  }, [activeTab, historyFilter, dateRange.start, dateRange.end]);
+  }, [activeTab, historyFilter, dateRange.start, dateRange.end, historySearch]);
+
+  const handleTabChange = (e: any, { activeIndex }: any) => {
+    console.log('Tab changing to:', activeIndex);
+    setActiveTab(activeIndex);
+  };
+
+  const handleBorrowSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    console.log('Search value:', value);
+    setBorrowSearch(value);
+    // Optionally refresh the list when searching
+    fetchActiveBorrows();
+  };
 
   const panes = [
     {
@@ -459,22 +602,25 @@ const BorrowReturnPage = () => {
       menuItem: { key: 'return', icon: 'reply', content: t('returnBook') },
       render: () => (
         <Tab.Pane>
-          <Input
-            fluid
-            icon='search'
-            placeholder={t('searchBorrower')}
-            value={borrowSearch}
-            onChange={(e) => setBorrowSearch(e.target.value)}
-            style={{ marginBottom: '1rem' }}
-          />
+          <SearchContainer>
+            <Input
+              fluid
+              icon='search'
+              iconPosition='left'
+              placeholder={t('searchByBorrowerOrBook')}
+              value={borrowSearch}
+              onChange={handleBorrowSearch}
+              loading={searchLoading}
+              size='large'
+            />
+          </SearchContainer>
 
-          {activeBorrows.length > 0 ? (
-            <Table celled>
+          {activeBorrows && activeBorrows.length > 0 ? (
+            <ResponsiveTable celled>
               <Table.Header>
                 <Table.Row>
                   <Table.HeaderCell>{t('borrowerName')}</Table.HeaderCell>
-                  <Table.HeaderCell>{t('title')}</Table.HeaderCell>
-                  <Table.HeaderCell>{t('code')}</Table.HeaderCell>
+                  <Table.HeaderCell>{t('bookInfo')}</Table.HeaderCell>
                   <Table.HeaderCell>{t('borrowDate')}</Table.HeaderCell>
                   <Table.HeaderCell>{t('expectedReturnDate')}</Table.HeaderCell>
                   <Table.HeaderCell>{t('actions')}</Table.HeaderCell>
@@ -485,28 +631,46 @@ const BorrowReturnPage = () => {
                 {activeBorrows
                   .filter(borrow => 
                     borrow.borrowerName.toLowerCase().includes(borrowSearch.toLowerCase()) ||
-                    borrow.book.title.toLowerCase().includes(borrowSearch.toLowerCase())
+                    (borrow.book?.title || '').toLowerCase().includes(borrowSearch.toLowerCase()) ||
+                    borrow.bookCopy.toLowerCase().includes(borrowSearch.toLowerCase())
                   )
                   .map(borrow => (
                     <Table.Row 
                       key={borrow._id}
-                      warning={new Date(borrow.expectedReturnDate) < new Date()}
+                      warning={borrow.status === 'overdue'}
                     >
-                      <Table.Cell>{borrow.borrowerName}</Table.Cell>
-                      <Table.Cell>{borrow.book.title}</Table.Cell>
-                      <Table.Cell>{borrow.bookCopy}</Table.Cell>
-                      <Table.Cell>
+                      <Table.Cell data-label={t('borrowerName')}>
+                        {borrow.borrowerName}
+                        <StatusBadge 
+                          size='tiny'
+                          color={borrow.status === 'overdue' ? 'red' : 'yellow'}
+                        >
+                          {t(borrow.status)}
+                        </StatusBadge>
+                      </Table.Cell>
+                      <Table.Cell data-label={t('bookInfo')}>
+                        <div>
+                          <strong>{borrow.book?.title || 'N/A'}</strong>
+                          <br />
+                          <small>{t('code')}: {borrow.bookCopy}</small>
+                        </div>
+                      </Table.Cell>
+                      <Table.Cell data-label={t('borrowDate')}>
                         {new Date(borrow.borrowDate).toLocaleDateString()}
                       </Table.Cell>
-                      <Table.Cell>
+                      <Table.Cell data-label={t('expectedReturnDate')}>
                         {new Date(borrow.expectedReturnDate).toLocaleDateString()}
                       </Table.Cell>
-                      <Table.Cell>
+                      <Table.Cell data-label={t('actions')} textAlign="center">
                         <Button
                           primary
+                          size='small'
                           icon
                           labelPosition='left'
-                          onClick={() => setSelectedBorrow(borrow)}
+                          onClick={() => {
+                            setSelectedBorrow(borrow);
+                            setReturnModalOpen(true);
+                          }}
                         >
                           <Icon name='reply' />
                           {t('return')}
@@ -515,7 +679,7 @@ const BorrowReturnPage = () => {
                     </Table.Row>
                   ))}
               </Table.Body>
-            </Table>
+            </ResponsiveTable>
           ) : (
             <Message info>
               <PlayfulMessageHeader>
@@ -525,54 +689,55 @@ const BorrowReturnPage = () => {
           )}
 
           <Modal
-            open={!!selectedBorrow}
-            onClose={() => {
-              setSelectedBorrow(null);
-              setReturnComments('');
-            }}
+            open={returnModalOpen}
+            onClose={() => setReturnModalOpen(false)}
+            size="tiny"
           >
             <Modal.Header>{t('returnBook')}</Modal.Header>
             <Modal.Content>
               {selectedBorrow && (
-                <>
-                  <Message info>
-                    <PlayfulMessageHeader>
-                      {t('returnBookConfirmation')}
-                    </PlayfulMessageHeader>
-                    <p>
-                      {t('returnBookDetails', {
-                        title: selectedBorrow.book.title,
-                        borrower: selectedBorrow.borrowerName,
-                        code: selectedBorrow.bookCopy
-                      })}
-                    </p>
-                  </Message>
+                <div style={{ fontSize: '1.1em' }}>
+                  <p>
+                    <strong>{t('borrower')}:</strong> {selectedBorrow.borrowerName}
+                    <StatusBadge 
+                      size='tiny'
+                      color={selectedBorrow.status === 'overdue' ? 'red' : 'yellow'}
+                    >
+                      {t(selectedBorrow.status)}
+                    </StatusBadge>
+                  </p>
+                  <p><strong>{t('book')}:</strong> {selectedBorrow.book?.title}</p>
+                  <p><strong>{t('code')}:</strong> {selectedBorrow.bookCopy}</p>
+                  <p>
+                    <strong>{t('borrowDate')}:</strong> {new Date(selectedBorrow.borrowDate).toLocaleDateString()}
+                    <br />
+                    <strong>{t('dueDate')}:</strong> {new Date(selectedBorrow.expectedReturnDate).toLocaleDateString()}
+                  </p>
                   <Form>
                     <Form.TextArea
                       label={t('returnComments')}
                       value={returnComments}
                       onChange={(e) => setReturnComments(e.target.value)}
-                      placeholder={t('optionalReturnComments')}
+                      placeholder={t('returnCommentsPlaceholder')}
                     />
                   </Form>
-                </>
+                </div>
               )}
             </Modal.Content>
             <Modal.Actions>
-              <Button onClick={() => {
-                setSelectedBorrow(null);
-                setReturnComments('');
-              }}>
-                {t('cancel')}
-              </Button>
-              <Button 
-                primary 
-                onClick={handleReturn}
-                loading={returnLoading}
-              >
-                <Icon name='check' />
-                {t('confirmReturn')}
-              </Button>
+              <Button.Group fluid>
+                <Button negative onClick={() => setReturnModalOpen(false)}>
+                  {t('cancel')}
+                </Button>
+                <Button.Or />
+                <Button 
+                  positive 
+                  loading={returnLoading}
+                  onClick={handleReturn}
+                >
+                  {t('confirmReturn')}
+                </Button>
+              </Button.Group>
             </Modal.Actions>
           </Modal>
         </Tab.Pane>
@@ -581,7 +746,7 @@ const BorrowReturnPage = () => {
     {
       menuItem: { key: 'history', icon: 'history', content: t('borrowHistory') },
       render: () => (
-        <Tab.Pane loading={historyLoading}>
+        <Tab.Pane>
           <Form>
             <Form.Group widths='equal'>
               <Form.Input
@@ -591,7 +756,6 @@ const BorrowReturnPage = () => {
                 value={historySearch}
                 onChange={(e) => {
                   setHistorySearch(e.target.value);
-                  debouncedSearch(e.target.value);
                 }}
               />
               <Form.Select
@@ -627,91 +791,92 @@ const BorrowReturnPage = () => {
               setHistorySearch('');
               setHistoryFilter('all');
               setDateRange({ start: '', end: '' });
+              fetchBorrowHistory();
             }}
           >
             {t('clearFilters')}
           </Button>
 
-          {historyRecords.length > 0 ? (
-            <Table celled>
-              <Table.Header>
-                <Table.Row>
-                  <Table.HeaderCell>{t('borrowerName')}</Table.HeaderCell>
-                  <Table.HeaderCell>{t('title')}</Table.HeaderCell>
-                  <Table.HeaderCell>{t('code')}</Table.HeaderCell>
-                  <Table.HeaderCell>{t('borrowDate')}</Table.HeaderCell>
-                  <Table.HeaderCell>{t('expectedReturnDate')}</Table.HeaderCell>
-                  <Table.HeaderCell>{t('actualReturnDate')}</Table.HeaderCell>
-                  <Table.HeaderCell>{t('status')}</Table.HeaderCell>
-                  <Table.HeaderCell>{t('comments')}</Table.HeaderCell>
-                </Table.Row>
-              </Table.Header>
-              <Table.Body>
-                {historyRecords.map(record => (
-                  <Table.Row 
-                    key={record._id}
-                    positive={record.status === 'returned'}
-                    negative={record.status === 'overdue'}
-                    warning={record.status === 'borrowed'}
-                  >
-                    <Table.Cell>{record.borrowerName}</Table.Cell>
-                    <Table.Cell>{record.book.title}</Table.Cell>
-                    <Table.Cell>{record.bookCopy}</Table.Cell>
-                    <Table.Cell>
-                      {new Date(record.borrowDate).toLocaleDateString()}
-                      <br />
-                      <small>{t('by')} {record.borrowedBy.username}</small>
-                    </Table.Cell>
-                    <Table.Cell>
-                      {new Date(record.expectedReturnDate).toLocaleDateString()}
-                    </Table.Cell>
-                    <Table.Cell>
-                      {record.returnDate ? (
-                        <>
-                          {new Date(record.returnDate).toLocaleDateString()}
-                          <br />
-                          <small>{t('by')} {record.returnedBy?.username}</small>
-                        </>
-                      ) : '-'}
-                    </Table.Cell>
-                    <Table.Cell>
-                      <Label 
-                        color={
-                          record.status === 'returned' ? 'green' : 
-                          record.status === 'overdue' ? 'red' : 'yellow'
-                        }
-                      >
-                        {t(record.status)}
-                      </Label>
-                    </Table.Cell>
-                    <Table.Cell>{record.comments || '-'}</Table.Cell>
+          <TableContainer>
+            {historyLoading && (
+              <TableLoader>
+                <Icon name='spinner' loading size='large' />
+              </TableLoader>
+            )}
+            
+            {historyRecords.length > 0 ? (
+              <Table celled>
+                <Table.Header>
+                  <Table.Row>
+                    <Table.HeaderCell>{t('borrowerName')}</Table.HeaderCell>
+                    <Table.HeaderCell>{t('title')}</Table.HeaderCell>
+                    <Table.HeaderCell>{t('code')}</Table.HeaderCell>
+                    <Table.HeaderCell>{t('borrowDate')}</Table.HeaderCell>
+                    <Table.HeaderCell>{t('expectedReturnDate')}</Table.HeaderCell>
+                    <Table.HeaderCell>{t('actualReturnDate')}</Table.HeaderCell>
+                    <Table.HeaderCell>{t('status')}</Table.HeaderCell>
+                    <Table.HeaderCell>{t('comments')}</Table.HeaderCell>
                   </Table.Row>
-                ))}
-              </Table.Body>
-            </Table>
-          ) : (
-            <Message info>
-              <PlayfulMessageHeader>
-                {t('noBorrowHistory')}
-              </PlayfulMessageHeader>
-            </Message>
-          )}
+                </Table.Header>
+                <Table.Body>
+                  {historyRecords.map(record => (
+                    <Table.Row 
+                      key={record._id}
+                      positive={record.status === 'returned'}
+                      negative={record.status === 'overdue'}
+                      warning={record.status === 'borrowed'}
+                    >
+                      <Table.Cell>{record.borrowerName}</Table.Cell>
+                      <Table.Cell>{record.book.title}</Table.Cell>
+                      <Table.Cell>{record.bookCopy}</Table.Cell>
+                      <Table.Cell>
+                        {new Date(record.borrowDate).toLocaleDateString()}
+                        {/*<br />
+                        <small>
+                          {t('by')} {record.borrowedBy?.username || t('unknown')}
+                        </small>*/}
+                      </Table.Cell>
+                      <Table.Cell>
+                        {new Date(record.expectedReturnDate).toLocaleDateString()}
+                      </Table.Cell>
+                      <Table.Cell>
+                        {record.returnDate ? (
+                          <>
+                            {new Date(record.returnDate).toLocaleDateString()}
+                            {/*<br />
+                            <small>
+                              {t('by')} {record.returnedBy?.username || t('unknown')}
+                            </small>*/}
+                          </>
+                        ) : '-'}
+                      </Table.Cell>
+                      <Table.Cell>
+                        <Label 
+                          color={
+                            record.status === 'returned' ? 'green' : 
+                            record.status === 'overdue' ? 'red' : 'yellow'
+                          }
+                        >
+                          {t(record.status)}
+                        </Label>
+                      </Table.Cell>
+                      <Table.Cell>{record.comments || '-'}</Table.Cell>
+                    </Table.Row>
+                  ))}
+                </Table.Body>
+              </Table>
+            ) : (
+              <Message info>
+                <PlayfulMessageHeader>
+                  {t('noBorrowHistory')}
+                </PlayfulMessageHeader>
+              </Message>
+            )}
+          </TableContainer>
         </Tab.Pane>
       )
     }
   ];
-
-  const debouncedSearch = useCallback(
-    debounce((value: string) => {
-      if (value) {
-        setSearchLoading(true);
-        fetchBorrowHistory().finally(() => {
-          setSearchLoading(false);
-        });
-      }
-    }, 500),
-    [fetchBorrowHistory]
-  );
 
   return (
     <div>
@@ -719,7 +884,11 @@ const BorrowReturnPage = () => {
       <PlayfulContainer>
         <PlayfulHeader>{t('borrowReturn')}</PlayfulHeader>
         <PlayfulSegment>
-          <Tab panes={panes} />
+          <Tab 
+            panes={panes} 
+            onTabChange={handleTabChange}
+            activeIndex={activeTab}
+          />
         </PlayfulSegment>
       </PlayfulContainer>
     </div>

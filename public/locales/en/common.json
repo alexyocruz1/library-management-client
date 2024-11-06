@@ -176,5 +176,12 @@
     "endDate": "End Date",
     "by": "by",
     "errorFetchingHistory": "Error fetching borrow history",
-    "clearFilters": "Clear Filters"
+    "clearFilters": "Clear Filters",
+    "bookInfo": "Book Information",
+    "comments": "Comments",
+    "errorInvalidData": "Invalid data received from server",
+    "returnCommentsPlaceholder": "Optional: Add any comments about the return (condition, damages, etc.)",
+    "noResults": "No results found",
+    "searchByBorrowerOrBook": "Search by borrower name, book title, or code...",
+    "unknown": "Unknown user"
 }
